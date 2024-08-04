@@ -17,6 +17,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
+          passphrase: ${{ secrets.PASS }}
           script: |
             cd ~/seastudy-backend  # Adjust this path as needed
             git pull origin main
