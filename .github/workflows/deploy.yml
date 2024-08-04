@@ -22,5 +22,5 @@ jobs:
             cd ~/seastudy-backend  # Adjust this path as needed
             git pull origin main
             go build -o seastudy-app
-            sudo systemctl stop seastudy.service
-            sudo systemctl start seastudy.service
+            systemctl stop seastudy.service
+            systemctl start seastudy.service
