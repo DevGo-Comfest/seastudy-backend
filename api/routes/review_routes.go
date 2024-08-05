@@ -17,5 +17,8 @@ func RegisterReviewRoutes(router *gin.Engine, db *gorm.DB) {
 		authenticated.POST("/review", func(c *gin.Context) {
 			controllers.CreateReview(c, db)
 		})
+		authenticated.GET("/review/:course_id", func(c *gin.Context) {
+			controllers.GetCourseReviews(c, db)
+		})
 	}
 }
