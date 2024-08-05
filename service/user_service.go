@@ -27,6 +27,7 @@ func GetUserBalance(db *gorm.DB, userID uuid.UUID) (float64, error) {
 	}
 	return user.Balance, nil
 }
+
 func UpdateUserBalance(db *gorm.DB, userID uuid.UUID, amount float64) error {
 	var user models.User
 	if err := db.Where("user_id = ?", userID).First(&user).Error; err != nil {
