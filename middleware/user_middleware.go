@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 func UserMiddleware() gin.HandlerFunc {
@@ -30,7 +31,7 @@ func UserMiddleware() gin.HandlerFunc {
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
 			return []byte(util.GetJWTSecret()), nil
 		})
@@ -45,6 +46,12 @@ func UserMiddleware() gin.HandlerFunc {
 			userID, ok := claims["sub"].(string)
 			if !ok {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID in token"})
+				c.Abort()
+				return
+			}
+			// Validate UUID format
+			if _, err := uuid.Parse(userID); err != nil {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid UUID format"})
 				c.Abort()
 				return
 			}
