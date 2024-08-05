@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -66,6 +67,7 @@ func LoginUser(c *gin.Context, db *gorm.DB) {
 	// Generate JWT token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": user.UserID,
+		"role": user.Role,
 		"exp": time.Now().Add(time.Hour * 24).Unix(),
 	})
 
@@ -81,6 +83,45 @@ func LoginUser(c *gin.Context, db *gorm.DB) {
 		"user": gin.H{
 			"id":    user.UserID,
 			"email": user.Email,
+			"role": user.Role,
 		},
 	})
+}
+
+func GetUserProfile(c *gin.Context, db *gorm.DB) {
+	// Get the user ID from the context (set by the UserMiddleware)
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	// Convert the userID to UUID
+	userUUID, err := uuid.Parse(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	var user models.User
+	if err := service.GetUserByID(db, &user, userUUID); err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user profile"})
+		}
+		return
+	}
+
+	response := gin.H{
+		"userId":    user.UserID,
+		"name":      user.Name,
+		"email":     user.Email,
+		"balance":   user.Balance,
+		"role":      user.Role,
+		"createdAt": user.CreatedAt,
+		"updatedAt": user.UpdatedAt,
+	}
+
+	c.JSON(http.StatusOK, response)
 }
