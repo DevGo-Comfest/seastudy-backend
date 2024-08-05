@@ -12,7 +12,7 @@ type User struct {
 	Email       string         `gorm:"type:varchar(255);unique" json:"email" binding:"required,email"`
 	Password    string         `gorm:"type:varchar(255)" json:"password" binding:"required,min=8"`
 	Balance     float64        `gorm:"type:decimal(10,2)"`
-	Role        RoleEnum       `gorm:"type:role_enum"`
+	Role        RoleEnum       `gorm:"type:varchar(20);default:user"`
 	CreatedAt   time.Time      `gorm:"type:timestamp"`
 	UpdatedAt   time.Time      `gorm:"type:timestamp"`
 	Topups      []TopupHistory `gorm:"foreignKey:UserID"`
