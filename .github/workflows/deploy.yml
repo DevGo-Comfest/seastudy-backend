@@ -3,7 +3,7 @@ name: Deploy to VPS
 on:
   push:
     branches:
-      - main  # Replace 'main' with your branch name
+      - dev  # Replace 'main' with your branch name
 
 jobs:
   deploy:
@@ -20,7 +20,7 @@ jobs:
           passphrase: ${{ secrets.PASS }}
           script: |
             cd ~/seastudy-backend  # Adjust this path as needed
-            git pull origin main
+            git pull origin dev
             go build -o seastudy-app
             systemctl stop seastudy.service
             systemctl start seastudy.service
