@@ -6,6 +6,7 @@ type RoleEnum string
 const (
     UserRole   RoleEnum = "user"
     AuthorRole RoleEnum = "author"
+    InstructorRole RoleEnum = "instructor"
 )
 
 // Topup status enums
