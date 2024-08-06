@@ -34,6 +34,7 @@ func main() {
 	routes.RegisterEnrollmentRoutes(r, db)
 	routes.RegisterTopupRoutes(r, db)
 	routes.RegisterReviewRoutes(r, db)
+	routes.RegisterForumPostRoutes(r, db)
 
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
