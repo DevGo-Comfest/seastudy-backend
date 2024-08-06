@@ -1,12 +1,14 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"sea-study/api/models"
 	"sea-study/service"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -103,4 +105,26 @@ func DeleteCourse(c *gin.Context, db *gorm.DB) {
     }
 
     c.JSON(http.StatusOK, gin.H{"message": "Course deleted successfully"})
+}
+
+func UploadCourseImage(c *gin.Context, db *gorm.DB) {
+	file, err := c.FormFile("image")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to upload image"})
+		return
+	}
+
+	extension := file.Filename[len(file.Filename)-4:]
+
+	imageID := uuid.New().String()
+
+	filePath := fmt.Sprintf("uploads/%s%s", imageID, extension)
+	if err := c.SaveUploadedFile(file, filePath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save image"})
+		return
+	}
+
+	imageURL := fmt.Sprintf("/%s", filePath)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Image uploaded successfully", "image_url": imageURL})
 }

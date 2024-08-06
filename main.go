@@ -11,6 +11,8 @@ import (
 func main() {
 	r := gin.Default()
 
+	r.Static("/uploads", "./uploads")
+
 	// Initialize the database
 	db := config.InitDB()
 

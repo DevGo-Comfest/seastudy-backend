@@ -32,6 +32,9 @@ func RegisterCourseRoutes(router *gin.Engine, db *gorm.DB) {
 			authorRoutes.DELETE("/courses/:course_id", func(c *gin.Context) {
 				controllers.DeleteCourse(c, db)
 			})
+			authorRoutes.POST("/courses/upload/image", func(c *gin.Context) {
+				controllers.UploadCourseImage(c, db)
+			})
 		}
 	}
 }
