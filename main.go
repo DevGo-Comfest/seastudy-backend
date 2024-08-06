@@ -11,6 +11,8 @@ import (
 func main() {
 	r := gin.Default()
 
+	r.Static("/uploads", "./uploads")
+
 	// Initialize the database
 	db := config.InitDB()
 
@@ -35,6 +37,7 @@ func main() {
 	routes.RegisterTopupRoutes(r, db)
 	routes.RegisterReviewRoutes(r, db)
 	routes.RegisterForumPostRoutes(r, db)
+	routes.RegisterCourseRoutes(r, db)
 
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
