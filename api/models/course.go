@@ -25,9 +25,9 @@ type Course struct {
     UpdatedAt      time.Time       `gorm:"type:timestamp"`
     Rating         int             `gorm:"type:int"`
     Status         CourseStatusEnum `gorm:"type:course_status_enum;default:inactive"`
-    Syllabuses     []Syllabus      `gorm:"foreignKey:CourseID"`
+    Syllabuses     []Syllabus      `gorm:"foreignKey:CourseID;constraint:OnDelete:CASCADE"`
     Enrollments    []Enrollment    `gorm:"foreignKey:CourseID"`
     Progresses     []UserProgress  `gorm:"foreignKey:CourseID"`
-    ForumPosts     []ForumPost     `gorm:"foreignKey:CourseID"`
-    Reviews        []CourseReview  `gorm:"foreignKey:CourseID"`
+    ForumPosts     []ForumPost     `gorm:"foreignKey:CourseID;constraint:OnDelete:CASCADE"`
+    Reviews        []CourseReview  `gorm:"foreignKey:CourseID;constraint:OnDelete:CASCADE"`
 }

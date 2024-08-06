@@ -47,7 +47,6 @@ const (
 type SubmissionStatusEnum string
 
 const (
-    NotSubmitted   SubmissionStatusEnum = "not_submitted"
     Submitted      SubmissionStatusEnum = "submitted"
     Graded         SubmissionStatusEnum = "graded"
 )
