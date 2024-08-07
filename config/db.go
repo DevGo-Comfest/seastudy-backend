@@ -86,6 +86,7 @@ func InitDB() *gorm.DB {
         &models.Assignment{},
         &models.Submission{},
         &models.CourseReview{},
+        &models.UserAssignment{},
     )
 
     return db

@@ -12,6 +12,6 @@ type Syllabus struct {
 	InstructorID uuid.UUID          `gorm:"type:uuid;not null"`
 	AssignmentID string             `gorm:"type:varchar(255)"`
 	CourseID     int                `gorm:"type:int;not null"`
-	Materials    []SyllabusMaterial `gorm:"foreignKey:SyllabusID"`
-	Assignments  []Assignment       `gorm:"foreignKey:SyllabusID"`
+	Materials    []SyllabusMaterial `gorm:"foreignKey:SyllabusID;constraint:OnDelete:CASCADE"`
+	Assignments  []Assignment       `gorm:"foreignKey:SyllabusID;constraint:OnDelete:CASCADE"`
 }
