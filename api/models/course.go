@@ -2,7 +2,13 @@ package models
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
+
+type InstructorIDs struct {
+	InstructorIDs []uuid.UUID `json:"instructor_ids"`
+}
 
 type CourseInput struct {
 	Title           string         `json:"title" binding:"required"`
@@ -11,10 +17,12 @@ type CourseInput struct {
 	Category        string         `json:"category" binding:"required"`
 	ImageURL        string         `json:"image_url" binding:"required"`
 	DifficultyLevel DifficultyEnum `json:"difficulty_level" binding:"required"`
+	UserID          uuid.UUID      `json:"user_id" binding:"required"`
 }
 
 type Course struct {
 	CourseID        int              `gorm:"primaryKey;autoIncrement"`
+	UserID          uuid.UUID        `gorm:"type:uuid;not null"`
 	Title           string           `gorm:"type:varchar(255)"`
 	Description     string           `gorm:"type:text"`
 	Price           int              `gorm:"type:int"`

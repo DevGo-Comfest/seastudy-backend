@@ -39,6 +39,10 @@ func main() {
 	routes.RegisterForumPostRoutes(r, db)
 	routes.RegisterCourseRoutes(r, db)
 	routes.RegisterSyllabusRoutes(r, db)
-	routes.RegisterSyllabusMaterialRoutes(r, db)
+	routes.RegisterAssignmentRoutes(r, db)
+	routes.RegisterSyllabusMaterialRoutes(r, db)	
+	// routes.RegisterProgressRoutes(r, db)
+
+
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
