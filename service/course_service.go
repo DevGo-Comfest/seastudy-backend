@@ -16,6 +16,7 @@ func CreateCourse(db *gorm.DB, input *models.CourseInput) (*models.Course, error
 		Category:        input.Category,
 		ImageURL:        input.ImageURL,
 		DifficultyLevel: input.DifficultyLevel,
+		UserID:          input.UserID,
 	}
 
 	if err := db.Create(course).Error; err != nil {
