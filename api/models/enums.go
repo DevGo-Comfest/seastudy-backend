@@ -38,7 +38,6 @@ const (
 type ProgressStatusEnum string
 
 const (
-    NotStarted   ProgressStatusEnum = "not_started"
     InProgress   ProgressStatusEnum = "in_progress"
     Completed    ProgressStatusEnum = "completed"
 )

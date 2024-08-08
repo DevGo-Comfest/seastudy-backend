@@ -30,8 +30,8 @@ func createEnums(db *gorm.DB) {
         "topup_status_enum":      "CREATE TYPE topup_status_enum AS ENUM ('pending', 'completed');",
         "course_difficulty_enum": "CREATE TYPE course_difficulty_enum AS ENUM ('beginner', 'intermediate', 'advanced');",
         "course_status_enum":     "CREATE TYPE course_status_enum AS ENUM ('active', 'inactive');",
-        "progress_status_enum":   "CREATE TYPE progress_status_enum AS ENUM ('not_started', 'in_progress', 'completed');",
-        "submission_status_enum": "CREATE TYPE submission_status_enum AS ENUM ('not_submitted', 'submitted', 'graded');",
+        "progress_status_enum":   "CREATE TYPE progress_status_enum AS ENUM ('in_progress', 'completed');",
+        "submission_status_enum": "CREATE TYPE submission_status_enum AS ENUM ('submitted', 'graded');",
     }
 
     for enumName, createQuery := range enums {
