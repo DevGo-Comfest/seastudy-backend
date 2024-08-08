@@ -38,7 +38,9 @@ func main() {
 	routes.RegisterReviewRoutes(r, db)
 	routes.RegisterForumPostRoutes(r, db)
 	routes.RegisterCourseRoutes(r, db)
+	routes.RegisterSyllabusRoutes(r, db)
 	routes.RegisterAssignmentRoutes(r, db)
+	routes.RegisterSyllabusMaterialRoutes(r, db)	
 	// routes.RegisterProgressRoutes(r, db)
 
 
