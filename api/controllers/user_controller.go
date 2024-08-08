@@ -82,6 +82,7 @@ func LoginUser(c *gin.Context, db *gorm.DB) {
 		"token":   tokenString,
 		"user": gin.H{
 			"id":    user.UserID,
+			"name": user.Name,
 			"email": user.Email,
 			"role": user.Role,
 		},
