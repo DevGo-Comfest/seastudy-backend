@@ -6,8 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-
-
 type UserProgress struct {
     UserProgressID     int              `gorm:"primaryKey;autoIncrement"`
     UserID             uuid.UUID        `gorm:"type:uuid;not null"`
