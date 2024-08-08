@@ -6,6 +6,10 @@ import (
 	"github.com/google/uuid"
 )
 
+type InstructorIDs struct {
+	InstructorIDs []uuid.UUID `json:"instructor_ids"`
+}
+
 type CourseInput struct {
 	Title           string         `json:"title" binding:"required"`
 	Description     string         `json:"description" binding:"required"`

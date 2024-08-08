@@ -148,3 +148,49 @@ func UploadCourseImage(c *gin.Context, db *gorm.DB) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Image uploaded successfully", "image_url": imageURL})
 }
+
+func AddCourseInstructors(c *gin.Context, db *gorm.DB) {
+	courseIDParam := c.Param("course_id")
+	courseID, err := strconv.Atoi(courseIDParam)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid course ID"})
+		return
+	}
+
+	// Get the user ID from the middleware
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	userUUID, err := uuid.Parse(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	// Check if the user is the creator of the course
+	course, err := service.GetCourse(db, courseID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if course.UserID != userUUID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to add instructors to this course"})
+		return
+	}
+
+	var instructorIDs models.InstructorIDs
+	if err := c.ShouldBindJSON(&instructorIDs); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := service.AddCourseInstructors(db, courseID, instructorIDs.InstructorIDs); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Instructors added to course successfully"})
+}

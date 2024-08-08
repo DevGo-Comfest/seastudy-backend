@@ -5,6 +5,7 @@ import (
 	"log"
 	"sea-study/api/models"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -87,4 +88,17 @@ func DeleteCourse(db *gorm.DB, courseID int) error {
 		return err
 	}
 	return nil
+}
+
+func AddCourseInstructors(db *gorm.DB, courseID int, instructorIDs []uuid.UUID) error {
+    for _, instructorID := range instructorIDs {
+        courseInstructor := &models.CourseInstructor{
+            CourseID:       courseID,
+            InstructorID:   instructorID,
+        }
+        if err := db.Create(courseInstructor).Error; err != nil {
+            return err
+        }
+    }
+    return nil
 }
