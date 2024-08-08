@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"sea-study/api/models"
 	"sea-study/service"
 	"strconv"
@@ -124,7 +125,8 @@ func UploadCourseImage(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	imageURL := fmt.Sprintf("/%s", filePath)
+    hostURL := os.Getenv("HOST_URL")
+	imageURL := fmt.Sprintf("%s/%s", hostURL, filePath)
 
 	c.JSON(http.StatusOK, gin.H{"message": "Image uploaded successfully", "image_url": imageURL})
 }
