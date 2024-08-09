@@ -40,7 +40,7 @@ func UpdateSyllabus(db *gorm.DB, syllabusID int, updatedSyllabus *models.Syllabu
 	return db.Model(&syllabus).Updates(map[string]interface{}{
 		"title":        updatedSyllabus.Title,
 		"description":  updatedSyllabus.Description,
-		"assignment_id": updatedSyllabus.AssignmentID,
+		// "assignment_id": updatedSyllabus.AssignmentID,
 	}).Error
 }
 

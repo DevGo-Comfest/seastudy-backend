@@ -47,7 +47,7 @@ func CreateSyllabus(c *gin.Context, db *gorm.DB) {
 		Title:        input.Title,
 		Description:  input.Description,
 		InstructorID: instructorUUID,
-		AssignmentID: input.AssignmentID,
+		// AssignmentID: input.AssignmentID,
 		CourseID:     input.CourseID,
 	}
 
@@ -89,7 +89,7 @@ func UpdateSyllabus(c *gin.Context, db *gorm.DB) {
 		Title:        input.Title,
 		Description:  input.Description,
 		InstructorID: instructorUUID, // Use the parsed uuid.UUID value here
-		AssignmentID: input.AssignmentID,
+		// AssignmentID: input.AssignmentID,
 	}
 
 	if err := service.UpdateSyllabus(db, syllabusID, &updatedSyllabus, userID.(string)); err != nil {
