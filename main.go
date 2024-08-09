@@ -41,6 +41,7 @@ func main() {
 	routes.RegisterSyllabusRoutes(r, db)
 	routes.RegisterAssignmentRoutes(r, db)
 	routes.RegisterSyllabusMaterialRoutes(r, db)	
+	routes.RegisterSubmissionRoutes(r, db)
 	// routes.RegisterProgressRoutes(r, db)
 
 
