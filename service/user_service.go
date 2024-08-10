@@ -9,7 +9,7 @@ import (
 )
 
 func CreateUser(db *gorm.DB, user *models.User) error {
-    return db.Create(user).Error
+	return db.Create(user).Error
 }
 
 func GetUserByEmail(db *gorm.DB, user *models.User, email string) error {
@@ -18,6 +18,14 @@ func GetUserByEmail(db *gorm.DB, user *models.User, email string) error {
 
 func GetUserByID(db *gorm.DB, user *models.User, userID uuid.UUID) error {
 	return db.Where("user_id = ?", userID).First(user).Error
+}
+
+func ValidateUserExists(db *gorm.DB, userID uuid.UUID) error {
+	var user models.User
+	if err := db.Where("user_id = ?", userID).First(&user).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func GetUserBalance(db *gorm.DB, userID uuid.UUID) (float64, error) {

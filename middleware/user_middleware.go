@@ -2,7 +2,9 @@ package middleware
 
 import (
 	"fmt"
+	"gorm.io/gorm"
 	"net/http"
+	"sea-study/service"
 	"sea-study/util"
 	"strings"
 
@@ -11,7 +13,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func UserMiddleware() gin.HandlerFunc {
+func UserMiddleware(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -50,11 +52,21 @@ func UserMiddleware() gin.HandlerFunc {
 				return
 			}
 			// Validate UUID format
-			if _, err := uuid.Parse(userID); err != nil {
+			userUUID, err := uuid.Parse(userID)
+			if err != nil {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid UUID format"})
 				c.Abort()
 				return
 			}
+
+			// Check if the user exists
+			err = service.ValidateUserExists(db, userUUID)
+			if err != nil {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+				c.Abort()
+				return
+			}
+
 			c.Set("userID", userID)
 			c.Set("userRole", claims["role"])
 			c.Next()
