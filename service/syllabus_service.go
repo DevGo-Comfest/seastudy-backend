@@ -40,7 +40,6 @@ func UpdateSyllabus(db *gorm.DB, syllabusID int, updatedSyllabus *models.Syllabu
 	return db.Model(&syllabus).Updates(map[string]interface{}{
 		"title":        updatedSyllabus.Title,
 		"description":  updatedSyllabus.Description,
-		// "assignment_id": updatedSyllabus.AssignmentID,
 	}).Error
 }
 
@@ -59,7 +58,6 @@ func DeleteSyllabus(db *gorm.DB, syllabusID int, userID string) error {
 	// Begin a transaction
 	tx := db.Begin()
 
-	// Delete the syllabus
 	if err := tx.Delete(&models.Syllabus{}, syllabusID).Error; err != nil {
 		tx.Rollback()
 		return err
@@ -71,7 +69,6 @@ func DeleteSyllabus(db *gorm.DB, syllabusID int, userID string) error {
 		return err
 	}
 
-	// Commit the transaction
 	tx.Commit()
 
 	return nil

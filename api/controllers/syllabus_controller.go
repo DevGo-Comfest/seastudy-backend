@@ -14,14 +14,12 @@ import (
 type CreateSyllabusInput struct {
 	Title       string `json:"title" binding:"required"`
 	Description string `json:"description"`
-	AssignmentID string `json:"assignment_id"`
 	CourseID    int    `json:"course_id" binding:"required"`
 }
 
 type UpdateSyllabusInput struct {
 	Title        string `json:"title"`
 	Description  string `json:"description"`
-	AssignmentID string `json:"assignment_id"`
 }
 
 func CreateSyllabus(c *gin.Context, db *gorm.DB) {
@@ -47,7 +45,6 @@ func CreateSyllabus(c *gin.Context, db *gorm.DB) {
 		Title:        input.Title,
 		Description:  input.Description,
 		InstructorID: instructorUUID,
-		// AssignmentID: input.AssignmentID,
 		CourseID:     input.CourseID,
 	}
 
@@ -88,8 +85,7 @@ func UpdateSyllabus(c *gin.Context, db *gorm.DB) {
 	updatedSyllabus := models.Syllabus{
 		Title:        input.Title,
 		Description:  input.Description,
-		InstructorID: instructorUUID, // Use the parsed uuid.UUID value here
-		// AssignmentID: input.AssignmentID,
+		InstructorID: instructorUUID,
 	}
 
 	if err := service.UpdateSyllabus(db, syllabusID, &updatedSyllabus, userID.(string)); err != nil {
