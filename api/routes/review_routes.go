@@ -10,9 +10,9 @@ import (
 
 func RegisterReviewRoutes(router *gin.Engine, db *gorm.DB) {
 	api := router.Group("/api")
-	
+
 	authenticated := api.Group("/")
-	authenticated.Use(middleware.UserMiddleware())
+	authenticated.Use(middleware.UserMiddleware(db))
 	{
 		authenticated.POST("/review", func(c *gin.Context) {
 			controllers.CreateReview(c, db)

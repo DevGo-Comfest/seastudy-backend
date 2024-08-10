@@ -14,6 +14,6 @@ type Submission struct {
 	IsLate       bool                 `gorm:"type:boolean"`
 	AssignmentID int                  `gorm:"type:int;not null"`
 	UserID       uuid.UUID            `gorm:"type:uuid;not null"`
-	CreatedAt    time.Time            `gorm:"type:autoCreateTime"`
-	UpdatedAt    time.Time            `gorm:"type:autoUpdateTime"`
+	CreatedAt    time.Time            `gorm:"type:timestamp"`
+	UpdatedAt    time.Time            `gorm:"type:timestamp"`
 }

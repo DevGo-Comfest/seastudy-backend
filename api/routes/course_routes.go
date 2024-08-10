@@ -21,7 +21,7 @@ func RegisterCourseRoutes(router *gin.Engine, db *gorm.DB) {
 
 		// Author only
 		authorRoutes := api.Group("/")
-		authorRoutes.Use(middleware.UserMiddleware(), middleware.AuthorMiddleware())
+		authorRoutes.Use(middleware.UserMiddleware(db), middleware.AuthorMiddleware())
 		{
 			authorRoutes.POST("/courses", func(c *gin.Context) {
 				controllers.CreateCourse(c, db)

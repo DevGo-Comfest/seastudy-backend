@@ -18,7 +18,7 @@ func RegisterSyllabusRoutes(router *gin.Engine, db *gorm.DB) {
 
 		// Author only
 		authorRoutes := api.Group("/")
-		authorRoutes.Use(middleware.UserMiddleware(), middleware.AuthorMiddleware())
+		authorRoutes.Use(middleware.UserMiddleware(db), middleware.AuthorMiddleware())
 		{
 			authorRoutes.POST("/syllabus", func(c *gin.Context) {
 				controllers.CreateSyllabus(c, db)

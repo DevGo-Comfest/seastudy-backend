@@ -12,7 +12,7 @@ func RegisterAssignmentRoutes(router *gin.Engine, db *gorm.DB) {
 	api := router.Group("/api")
 	{
 		authenticated := api.Group("/")
-		authenticated.Use(middleware.UserMiddleware())
+		authenticated.Use(middleware.UserMiddleware(db))
 		{
 
 			authenticated.POST("/assignments/open", func(c *gin.Context) {
@@ -24,7 +24,7 @@ func RegisterAssignmentRoutes(router *gin.Engine, db *gorm.DB) {
 		}
 
 		authorRoutes := api.Group("/")
-		authorRoutes.Use(middleware.UserMiddleware(), middleware.AuthorMiddleware())
+		authorRoutes.Use(middleware.UserMiddleware(db), middleware.AuthorMiddleware())
 		{
 			authorRoutes.POST("/syllabus/:id/assignments", func(c *gin.Context) {
 				controllers.CreateAssignment(c, db)
