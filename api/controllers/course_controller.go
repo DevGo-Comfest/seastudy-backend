@@ -16,7 +16,7 @@ import (
 func CreateCourse(c *gin.Context, db *gorm.DB) {
 	var input models.CourseInput
 
-    // userID Set by UserMiddleware
+	// userID Set by UserMiddleware
 	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -29,14 +29,12 @@ func CreateCourse(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-    input.UserID = userUUID
-
+	input.UserID = userUUID
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
 
 	course, err := service.CreateCourse(db, &input)
 	if err != nil {
@@ -87,6 +85,9 @@ func UpdateCourse(c *gin.Context, db *gorm.DB) {
 	}
 
 	var input models.CourseInput
+
+	userID := c.GetString("userID")
+	input.UserID = uuid.MustParse(userID)
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
