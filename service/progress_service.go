@@ -4,6 +4,7 @@ import (
 	"errors"
 	"math"
 	"sea-study/api/models"
+	"sea-study/constants"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,7 +14,7 @@ import (
 func UpdateUserProgress(db *gorm.DB, userID string, courseID, syllabusID int) error {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
-		return errors.New("invalid user ID")
+		return errors.New(constants.ErrInvalidUserID)
 	}
 
 	var currentSyllabus models.Syllabus
@@ -42,10 +43,10 @@ func UpdateUserProgress(db *gorm.DB, userID string, courseID, syllabusID int) er
 			break
 		}
 		if progress, exists := userProgressMap[syllabus.SyllabusID]; !exists || progress.Status != models.Completed {
-			return errors.New("complete all previous syllabuses to open this one")
+			return errors.New(constants.ErrIncompletePreviousSyllabus)
 		}
 	}
-	
+
 	status := models.Completed
 	if len(currentSyllabus.Assignments) > 0 {
 		status = models.InProgress
@@ -66,11 +67,10 @@ func UpdateUserProgress(db *gorm.DB, userID string, courseID, syllabusID int) er
 	return nil
 }
 
-
 func GetUserCourseProgress(db *gorm.DB, userID string, courseID int) (int, error) {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
-		return 0, errors.New("invalid user ID")
+		return 0, errors.New(constants.ErrInvalidUserID)
 	}
 
 	var totalSyllabuses int64
@@ -79,16 +79,14 @@ func GetUserCourseProgress(db *gorm.DB, userID string, courseID int) (int, error
 	}
 
 	if totalSyllabuses == 0 {
-		return 0, errors.New("no syllabuses found for this course")
+		return 0, errors.New(constants.ErrNoSyllabusesFound)
 	}
 
-	// Count completed syllabuses for the user in the course
 	var completedSyllabuses int64
 	if err := db.Model(&models.UserProgress{}).Where("user_id = ? AND course_id = ? AND status = ?", userUUID, courseID, models.Completed).Count(&completedSyllabuses).Error; err != nil {
 		return 0, err
 	}
 
-	// Calculate the completion percentage
 	progressPercentage := int(math.Floor((float64(completedSyllabuses) / float64(totalSyllabuses)) * 100))
 
 	return progressPercentage, nil

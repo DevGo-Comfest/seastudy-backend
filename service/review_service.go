@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"sea-study/api/models"
+	"sea-study/constants"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,7 +22,7 @@ type CourseReviewResponse struct {
 func CreateReview(db *gorm.DB, userID string, courseID int, feedback string, rate int) (*models.CourseReview, error) {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(constants.ErrInvalidUserID)
 	}
 
 	enrolled, err := IsUserEnrolled(db, userUUID, courseID)
@@ -29,17 +30,16 @@ func CreateReview(db *gorm.DB, userID string, courseID int, feedback string, rat
 		return nil, err
 	}
 	if !enrolled {
-		return nil, fmt.Errorf("user is not enrolled in the course")
+		return nil, fmt.Errorf(constants.ErrUserNotEnrolledInCourse)
 	}
 	if rate < 1 || rate > 5 {
-		return nil, fmt.Errorf("rate must be between 1 and 5")
+		return nil, fmt.Errorf(constants.ErrInvalidRate)
 	}
 
-	// Check if the user has already submitted a review for this course
 	var existingReview models.CourseReview
 	err = db.Where("user_id = ? AND course_id = ?", userUUID, courseID).First(&existingReview).Error
 	if err == nil {
-		return nil, fmt.Errorf("user has already submitted a review for this course")
+		return nil, fmt.Errorf(constants.ErrUserAlreadySubmittedReview)
 	} else if err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -54,12 +54,11 @@ func CreateReview(db *gorm.DB, userID string, courseID int, feedback string, rat
 	}
 
 	if err := db.Create(review).Error; err != nil {
-		return nil, err
+		return nil, fmt.Errorf(constants.ErrFailedToCreateReview)
 	}
 
 	return review, nil
 }
-
 
 func GetCourseReviews(db *gorm.DB, courseID int) ([]CourseReviewResponse, error) {
 	var reviewResponses []CourseReviewResponse
@@ -72,7 +71,7 @@ func GetCourseReviews(db *gorm.DB, courseID int) ([]CourseReviewResponse, error)
 		Scan(&reviewResponses).Error
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(constants.ErrFailedToRetrieveReviews)
 	}
 
 	return reviewResponses, nil

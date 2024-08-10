@@ -1,7 +1,9 @@
 package service
 
 import (
+	"fmt"
 	"sea-study/api/models"
+	"sea-study/constants"
 
 	"gorm.io/gorm"
 )
@@ -12,24 +14,27 @@ func CreateSyllabusMaterial(db *gorm.DB, material *models.SyllabusMaterial) erro
 	var maxOrder int
 	err := db.Model(&models.SyllabusMaterial{}).Where("syllabus_id = ?", material.SyllabusID).Select("COALESCE(MAX(\"order\"), 0)").Row().Scan(&maxOrder)
 	if err != nil {
-		return err
+		return fmt.Errorf(constants.ErrFailedToCreateSyllabusMaterial)
 	}
 	
 	// Assign the next order value
 	material.Order = maxOrder + 1
-	
 	return db.Create(material).Error
 }
 
 func UpdateSyllabusMaterial(db *gorm.DB, materialID int, updatedMaterial *models.SyllabusMaterial, userID string) error {
 	var material models.SyllabusMaterial
 	if err := db.First(&material, materialID).Error; err != nil {
-		return err
+		return fmt.Errorf(constants.ErrInvalidSyllabusMaterialID)
 	}
 
 	var syllabus models.Syllabus
 	if err := db.First(&syllabus, material.SyllabusID).Error; err != nil {
-		return err
+		return fmt.Errorf(constants.ErrInvalidSyllabusID)
+	}
+
+	if syllabus.InstructorID.String() != userID {
+		return fmt.Errorf(constants.ErrUnauthorizedSyllabusAction)
 	}
 
 	return db.Model(&material).Updates(map[string]interface{}{
@@ -44,12 +49,12 @@ func UpdateSyllabusMaterial(db *gorm.DB, materialID int, updatedMaterial *models
 func DeleteSyllabusMaterial(db *gorm.DB, materialID int, userID string) error {
 	var material models.SyllabusMaterial
 	if err := db.First(&material, materialID).Error; err != nil {
-		return err
+		return fmt.Errorf(constants.ErrInvalidSyllabusMaterialID)
 	}
 
 	var syllabus models.Syllabus
 	if err := db.First(&syllabus, material.SyllabusID).Error; err != nil {
-		return err
+		return fmt.Errorf(constants.ErrInvalidSyllabusID)
 	}
 
 	// Begin a transaction
@@ -57,13 +62,13 @@ func DeleteSyllabusMaterial(db *gorm.DB, materialID int, userID string) error {
 
 	if err := tx.Delete(&models.SyllabusMaterial{}, materialID).Error; err != nil {
 		tx.Rollback()
-		return err
+		return fmt.Errorf(constants.ErrFailedToDeleteSyllabusMaterial)
 	}
 
 	// Reorder the remaining materials
 	if err := tx.Model(&models.SyllabusMaterial{}).Where("syllabus_id = ? AND \"order\" > ?", material.SyllabusID, material.Order).Update("\"order\"", gorm.Expr("\"order\" - 1")).Error; err != nil {
 		tx.Rollback()
-		return err
+		return fmt.Errorf(constants.ErrFailedToUpdateSyllabusMaterial)
 	}
 
 	tx.Commit()
@@ -75,7 +80,7 @@ func DeleteSyllabusMaterial(db *gorm.DB, materialID int, userID string) error {
 func GetSyllabusMaterial(db *gorm.DB, materialID int) (*models.SyllabusMaterial, error) {
 	var material models.SyllabusMaterial
 	if err := db.First(&material, materialID).Error; err != nil {
-		return nil, err
+		return nil, fmt.Errorf(constants.ErrFailedToRetrieveSyllabusMaterial)
 	}
 	return &material, nil
 }

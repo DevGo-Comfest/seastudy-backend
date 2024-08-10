@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"sea-study/constants"
 	"sea-study/service"
 
 	"github.com/gin-gonic/gin"
@@ -15,13 +16,13 @@ type EnrollInput struct {
 func EnrollUser(c *gin.Context, db *gorm.DB) {
 	var input EnrollInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidInput})
 		return
 	}
 
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
 		return
 	}
 
@@ -31,5 +32,5 @@ func EnrollUser(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Enrollment successful", "enrollment": enrollment})
+	c.JSON(http.StatusOK, gin.H{"message": "enrollment successful", "enrollment": enrollment})
 }
