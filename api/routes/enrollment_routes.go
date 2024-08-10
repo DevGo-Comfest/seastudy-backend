@@ -17,5 +17,8 @@ func RegisterEnrollmentRoutes(router *gin.Engine, db *gorm.DB) {
 		authenticated.POST("/enroll", func(c *gin.Context) {
 			controllers.EnrollUser(c, db)
 		})
+		authenticated.GET("/enrolled-courses", func(c *gin.Context) {
+			controllers.GetEnrolledCourses(c, db)
+		})
 	}
 }

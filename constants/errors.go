@@ -44,6 +44,7 @@ const (
 	ErrUserAlreadyEnrolled     = "user is already enrolled in the course"
 	ErrInsufficientBalance     = "insufficient balance to enroll in the course"
 	ErrFailedToCreateEnrollment = "failed to create enrollment"
+	ErrFailedToRetrieveEnrolledCourses = "failed to retrieve enrolled courses"
 )
 
 // Forum Post Errors

@@ -72,3 +72,20 @@ func EnrollUser(db *gorm.DB, userID string, courseID int) (*models.Enrollment, e
 
 	return enrollment, nil
 }
+
+func GetEnrolledCourses(db *gorm.DB, userID string) ([]models.Course, error) {
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, fmt.Errorf(constants.ErrInvalidUserID)
+	}
+
+	var courses []models.Course
+	err = db.Joins("JOIN enrollments ON enrollments.course_id = courses.course_id").
+		Where("enrollments.user_id = ?", userUUID).
+		Find(&courses).Error
+	if err != nil {
+		return nil, fmt.Errorf(constants.ErrFailedToRetrieveEnrolledCourses)
+	}
+
+	return courses, nil
+}
