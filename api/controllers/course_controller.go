@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"sea-study/api/models"
+	"sea-study/constants"
 	"sea-study/service"
 	"strconv"
 
@@ -194,4 +195,32 @@ func AddCourseInstructors(c *gin.Context, db *gorm.DB) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Instructors added to course successfully"})
+}
+
+
+
+func SearchCourses(c *gin.Context, db *gorm.DB) {
+	query := c.Query("q")                     // Search query
+	category := c.Query("category")           // Course category filter
+	difficulty := c.Query("difficulty_level") // Difficulty level filter
+	ratingStr := c.Query("rating")            // Rating filter
+
+	// Convert rating to integer
+	var rating int
+	var err error
+	if ratingStr != "" {
+		rating, err = strconv.Atoi(ratingStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidRating})
+			return
+		}
+	}
+
+	courses, err := service.SearchCourses(db, query, category, difficulty, rating)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToRetrieveCourses})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"courses": courses})
 }

@@ -32,6 +32,7 @@ func createEnums(db *gorm.DB) {
 		"course_status_enum":     "CREATE TYPE course_status_enum AS ENUM ('active', 'inactive');",
 		"progress_status_enum":   "CREATE TYPE progress_status_enum AS ENUM ('in_progress', 'completed');",
 		"submission_status_enum": "CREATE TYPE submission_status_enum AS ENUM ('submitted', 'graded');",
+		"category_enum":          "CREATE TYPE category_enum AS ENUM ('Android', 'Web', 'Desktop', 'Multiplatform', 'Game', 'IOS', 'Machine Learning', 'Data Scientist', 'React', 'DevOps', 'Cloud');",
 	}
 
 	for enumName, createQuery := range enums {

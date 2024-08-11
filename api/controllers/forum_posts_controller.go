@@ -30,7 +30,7 @@ func CreateForumPost(c *gin.Context, db *gorm.DB) {
 
 	forumPost, err := service.CreateForumPost(db, userID.(string), input.CourseID, input.Content)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToCreateForumPost})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

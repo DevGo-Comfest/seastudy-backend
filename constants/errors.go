@@ -26,6 +26,8 @@ const (
 	ErrFailedToUpdateCourse  = "failed to update course"
 	ErrFailedToDeleteCourse  = "failed to delete course"
 	ErrFailedToRetrieveCourse = "failed to retrieve course"
+	ErrInvalidRating             = "Invalid rating"
+	ErrFailedToRetrieveCourses   = "Failed to retrieve courses"
 )
 
 // Syllabus Errors
@@ -68,6 +70,9 @@ const (
 	ErrUserNotEnrolledInCourse     = "user is not enrolled in the course"
 	ErrInvalidRate                 = "rate must be between 1 and 5"
 	ErrUserAlreadySubmittedReview  = "user has already submitted a review for this course"
+	ErrIncompleteCourseProgress     = "complete all course materials to leave a review"
+	ErrNoReviewsFound     = "no reviews found"
+	ErrFailedToUpdateRating     = "failed to update rating"
 )
 
 // Syllabus Material Errors
