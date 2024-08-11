@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"sea-study/api/models"
+	"sea-study/constants"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -146,4 +147,26 @@ func GetCoursesByUser(db *gorm.DB, userID uuid.UUID) ([]models.Course, error) {
 		return nil, result.Error
 	}
 	return courses, nil
+}
+
+func ActivateCourse(db *gorm.DB, userID string, courseID int) (*models.Course, error) {
+	var course models.Course
+
+
+	if err := db.First(&course, courseID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf(constants.ErrCourseNotFound)
+		}
+		return nil, fmt.Errorf(constants.ErrFailedToRetrieveCourse)
+	}
+
+	if course.UserID != uuid.MustParse(userID) {
+		return nil, fmt.Errorf(constants.ErrUnauthorized)
+	}
+
+	if err := db.Model(&course).Update("status", models.ActiveStatus).Error; err != nil {
+		return nil, fmt.Errorf(constants.ErrFailedToUpdateCourse)
+	}
+
+	return &course, nil
 }
