@@ -19,7 +19,7 @@ func CreateCourse(db *gorm.DB, input *models.CourseInput) (*models.Course, error
 		Category:        categoryEnum,
 		ImageURL:        input.ImageURL,
 		DifficultyLevel: input.DifficultyLevel,
-		UserID:          input.UserID,
+		PrimaryAuthor:   input.PrimaryAuthor,
 	}
 	if err := db.Create(course).Error; err != nil {
 		return nil, err
@@ -152,7 +152,6 @@ func GetCoursesByUser(db *gorm.DB, userID uuid.UUID) ([]models.Course, error) {
 func ActivateCourse(db *gorm.DB, userID string, courseID int) (*models.Course, error) {
 	var course models.Course
 
-
 	if err := db.First(&course, courseID).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf(constants.ErrCourseNotFound)
@@ -160,7 +159,7 @@ func ActivateCourse(db *gorm.DB, userID string, courseID int) (*models.Course, e
 		return nil, fmt.Errorf(constants.ErrFailedToRetrieveCourse)
 	}
 
-	if course.UserID != uuid.MustParse(userID) {
+	if course.PrimaryAuthor != uuid.MustParse(userID) {
 		return nil, fmt.Errorf(constants.ErrUnauthorized)
 	}
 

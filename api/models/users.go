@@ -17,7 +17,7 @@ type User struct {
 	UpdatedAt       time.Time        `gorm:"type:timestamp"`
 	Topups          []TopupHistory   `gorm:"foreignKey:UserID"`
 	Courses         []Enrollment     `gorm:"foreignKey:UserID"`
-	AuthoredCourses []Course         `gorm:"foreignKey:UserID;"`
+	AuthoredCourses []Course         `gorm:"foreignKey:PrimaryAuthor;"`
 	Progresses      []UserProgress   `gorm:"foreignKey:UserID"`
 	Submissions     []Submission     `gorm:"foreignKey:UserID"`
 	UserAssignments []UserAssignment `gorm:"foreignKey:UserID"`

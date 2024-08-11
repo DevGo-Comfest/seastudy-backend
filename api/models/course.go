@@ -17,12 +17,12 @@ type CourseInput struct {
 	Category        CategoryEnum   `json:"category" binding:"required"`
 	ImageURL        string         `json:"image_url" binding:"required"`
 	DifficultyLevel DifficultyEnum `json:"difficulty_level" binding:"required"`
-	UserID          uuid.UUID      `json:"user_id" binding:"required"`
+	PrimaryAuthor   uuid.UUID      `json:"user_id" binding:"required"`
 }
 
 type Course struct {
 	CourseID        int              `gorm:"primaryKey;autoIncrement"`
-	UserID          uuid.UUID        `gorm:"type:uuid;not null"`
+	PrimaryAuthor   uuid.UUID        `gorm:"type:uuid;not null"`
 	Title           string           `gorm:"type:varchar(255)"`
 	Description     string           `gorm:"type:text"`
 	Price           int              `gorm:"type:int"`
