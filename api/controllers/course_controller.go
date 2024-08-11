@@ -20,26 +20,26 @@ func CreateCourse(c *gin.Context, db *gorm.DB) {
 	// userID Set by UserMiddleware
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
 		return
 	}
 
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidUserID})
 		return
 	}
 
 	input.UserID = userUUID
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidInput})
 		return
 	}
 
 	course, err := service.CreateCourse(db, &input)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToCreateCourse})
 		return
 	}
 
@@ -49,7 +49,7 @@ func CreateCourse(c *gin.Context, db *gorm.DB) {
 func GetAllCourses(c *gin.Context, db *gorm.DB) {
 	courses, err := service.GetAllCourses(db)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve courses"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToRetrieveCourses})
 		return
 	}
 
@@ -60,16 +60,16 @@ func GetCourse(c *gin.Context, db *gorm.DB) {
 	courseIDParam := c.Param("course_id")
 	courseID, err := strconv.Atoi(courseIDParam)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid course ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidCourseID})
 		return
 	}
 
 	course, err := service.GetCourse(db, courseID)
 	if err != nil {
 		if err.Error() == "course not found" {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Course not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": constants.ErrCourseNotFound})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve course"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToRetrieveCourses})
 		}
 		return
 	}
@@ -81,7 +81,7 @@ func UpdateCourse(c *gin.Context, db *gorm.DB) {
 	courseIDParam := c.Param("course_id")
 	courseID, err := strconv.Atoi(courseIDParam)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid course ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidCourseID})
 		return
 	}
 
@@ -90,16 +90,16 @@ func UpdateCourse(c *gin.Context, db *gorm.DB) {
 	userID := c.GetString("userID")
 	input.UserID = uuid.MustParse(userID)
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidInput})
 		return
 	}
 
 	course, err := service.UpdateCourse(db, courseID, &input)
 	if err != nil {
 		if err.Error() == "course not found" {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Course not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": constants.ErrCourseNotFound})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update course"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToUpdateCourse})
 		}
 		return
 	}
@@ -111,16 +111,16 @@ func DeleteCourse(c *gin.Context, db *gorm.DB) {
 	courseIDParam := c.Param("course_id")
 	courseID, err := strconv.Atoi(courseIDParam)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid course ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidCourseID})
 		return
 	}
 
 	err = service.DeleteCourse(db, courseID)
 	if err != nil {
 		if err.Error() == "course not found" {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Course not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": constants.ErrCourseNotFound})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete course"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToDeleteCourse})
 		}
 		return
 	}
@@ -131,7 +131,7 @@ func DeleteCourse(c *gin.Context, db *gorm.DB) {
 func UploadCourseImage(c *gin.Context, db *gorm.DB) {
 	file, err := c.FormFile("image")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to upload image"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrFailedToUploadImage})
 		return
 	}
 
@@ -141,7 +141,7 @@ func UploadCourseImage(c *gin.Context, db *gorm.DB) {
 
 	filePath := fmt.Sprintf("uploads/%s%s", imageID, extension)
 	if err := c.SaveUploadedFile(file, filePath); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save image"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToSaveImage})
 		return
 	}
 
@@ -155,49 +155,47 @@ func AddCourseInstructors(c *gin.Context, db *gorm.DB) {
 	courseIDParam := c.Param("course_id")
 	courseID, err := strconv.Atoi(courseIDParam)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid course ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidCourseID})
 		return
 	}
 
 	// Get the user ID from the middleware
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
 		return
 	}
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidUserID})
 		return
 	}
 
 	// Check if the user is the creator of the course
 	course, err := service.GetCourse(db, courseID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToRetrieveCourses})
 		return
 	}
 
 	if course.UserID != userUUID {
-		c.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to add instructors to this course"})
+		c.JSON(http.StatusForbidden, gin.H{"error": constants.ErrUnauthorized})
 		return
 	}
 
 	var instructorIDs models.InstructorIDs
 	if err := c.ShouldBindJSON(&instructorIDs); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidInput})
 		return
 	}
 
 	if err := service.AddCourseInstructors(db, courseID, instructorIDs.InstructorIDs); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToUpdateCourse})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Instructors added to course successfully"})
 }
-
-
 
 func SearchCourses(c *gin.Context, db *gorm.DB) {
 	query := c.Query("q")                     // Search query
