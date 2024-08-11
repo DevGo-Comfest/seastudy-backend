@@ -243,3 +243,25 @@ func GetMyCourse(c *gin.Context, db *gorm.DB) {
 
 	c.JSON(http.StatusOK, gin.H{"course": course})
 }
+
+func ActivateCourse(c *gin.Context, db *gorm.DB) {
+	courseID, err := strconv.Atoi(c.Param("course_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidCourseID})
+		return
+	}
+
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
+		return
+	}
+
+	course, err := service.ActivateCourse(db, userID.(string), courseID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Course activated successfully", "course": course})
+}
