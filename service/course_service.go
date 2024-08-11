@@ -10,11 +10,12 @@ import (
 )
 
 func CreateCourse(db *gorm.DB, input *models.CourseInput) (*models.Course, error) {
+	categoryEnum := models.CategoryEnum(input.Category)
 	course := &models.Course{
 		Title:           input.Title,
 		Description:     input.Description,
 		Price:           input.Price,
-		Category:        input.Category,
+		Category:        categoryEnum,
 		ImageURL:        input.ImageURL,
 		DifficultyLevel: input.DifficultyLevel,
 		UserID:          input.UserID,
@@ -60,11 +61,12 @@ func UpdateCourse(db *gorm.DB, courseID int, input *models.CourseInput) (*models
 		}
 		return nil, result.Error
 	}
+	categoryEnum := models.CategoryEnum(input.Category)
 
 	course.Title = input.Title
 	course.Description = input.Description
 	course.Price = input.Price
-	course.Category = input.Category
+	course.Category = categoryEnum
 	course.ImageURL = input.ImageURL
 	course.DifficultyLevel = input.DifficultyLevel
 
