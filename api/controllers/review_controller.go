@@ -31,7 +31,7 @@ func CreateReview(c *gin.Context, db *gorm.DB) {
 
 	review, err := service.CreateReview(db, userID.(string), input.CourseID, input.FeedbackText, input.Rate)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToCreateReview})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

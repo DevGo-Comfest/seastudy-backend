@@ -102,3 +102,33 @@ func AddCourseInstructors(db *gorm.DB, courseID int, instructorIDs []uuid.UUID) 
 	}
 	return nil
 }
+
+
+func SearchCourses(db *gorm.DB, query, category, difficulty string, rating int) ([]models.Course, error) {
+	var courses []models.Course
+
+	queryBuilder := db.Model(&models.Course{}).Where("is_deleted = ?", false)
+
+	if query != "" {
+		queryBuilder = queryBuilder.Where("title ILIKE ? OR description ILIKE ?", "%"+query+"%", "%"+query+"%")
+	}
+
+	if category != "" {
+		queryBuilder = queryBuilder.Where("category = ?", category)
+	}
+
+	if difficulty != "" {
+		queryBuilder = queryBuilder.Where("difficulty_level = ?", difficulty)
+	}
+
+	if rating > 0 {
+		queryBuilder = queryBuilder.Where("rating >= ?", rating)
+	}
+
+	err := queryBuilder.Preload("Syllabuses").Find(&courses).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return courses, nil
+}
