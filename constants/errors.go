@@ -68,6 +68,7 @@ const (
 	ErrIncompletePreviousSyllabus   = "complete all previous syllabuses to open this one"
 	ErrFailedToRetrieveUserProgress = "failed to retrieve user course progress"
 	ErrNoSyllabusesFound            = "no syllabuses found for this course"
+	ErrFailedToRetrieveProgress            = "failed to retrieve all user progress for this course"
 )
 
 // Review Errors

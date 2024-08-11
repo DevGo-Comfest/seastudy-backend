@@ -20,6 +20,11 @@ func RegisterProgressRoutes(router *gin.Engine, db *gorm.DB) {
 		authenticated.GET("/progress/course/:course_id", func(c *gin.Context) {
 			controllers.GetUserCourseProgress(c, db)
 		})
+
+		// Add this route for instructors to get student progress
+		authenticated.GET("/progress/course/:course_id/students", func(c *gin.Context) {
+			controllers.GetStudentsProgressForCourse(c, db)
+		})
 	}
 	
 }

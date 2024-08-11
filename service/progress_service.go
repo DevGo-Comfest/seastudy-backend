@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"sea-study/api/models"
 	"sea-study/constants"
@@ -10,6 +11,15 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
+
+
+type StudentProgress struct {
+	UserID           uuid.UUID `json:"user_id"`
+	UserName         string    `json:"user_name"`
+	ProgressPercentage int     `json:"progress_percentage"`
+	LastAccessed     time.Time `json:"last_accessed"`
+}
+
 
 func UpdateUserProgress(db *gorm.DB, userID string, courseID, syllabusID int) error {
 	userUUID, err := uuid.Parse(userID)
@@ -91,3 +101,61 @@ func GetUserCourseProgress(db *gorm.DB, userID string, courseID int) (int, error
 
 	return progressPercentage, nil
 }
+
+
+func GetStudentsProgressForCourse(db *gorm.DB, courseID int, instructorID string) ([]StudentProgress, error) {
+	userUUID, err := uuid.Parse(instructorID)
+	if err != nil {
+		return nil, fmt.Errorf(constants.ErrInvalidUserID)
+	}
+
+	// Check if the user is an instructor or the primary author of the course
+	var count int64
+	err = db.Table("course_instructors").
+		Where("course_id = ? AND instructor_id = ?", courseID, userUUID).
+		Count(&count).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	// If not found as an instructor, check if the user is the primary author
+	if count == 0 {
+		err = db.Model(&models.Course{}).
+			Where("course_id = ? AND primary_author = ?", courseID, userUUID).
+			Count(&count).Error
+
+		if err != nil || count == 0 {
+			return nil, fmt.Errorf(constants.ErrUnauthorized)
+		}
+	}
+
+	// Get the total number of syllabuses for the course
+	var totalSyllabuses int64
+	if err := db.Model(&models.Syllabus{}).Where("course_id = ?", courseID).Count(&totalSyllabuses).Error; err != nil {
+		return nil, fmt.Errorf(constants.ErrNoSyllabusesFound)
+	}
+
+	if totalSyllabuses == 0 {
+		return nil, fmt.Errorf(constants.ErrNoSyllabusesFound)
+	}
+
+	// Retrieve the student progress
+	var studentProgressList []StudentProgress
+	err = db.Table("user_progress").
+		Select(`user_progress.user_id, users.name as user_name, 
+				COUNT(CASE WHEN user_progress.status = ? THEN 1 END) * 100 / ? as progress_percentage, 
+				MAX(user_progress.last_accessed) as last_accessed`, 
+				models.Completed, totalSyllabuses).
+		Joins("JOIN users ON user_progress.user_id = users.user_id").
+		Where("user_progress.course_id = ?", courseID).
+		Group("user_progress.user_id, users.name").
+		Scan(&studentProgressList).Error
+
+	if err != nil {
+		return nil, fmt.Errorf(constants.ErrFailedToRetrieveProgress)
+	}
+
+	return studentProgressList, nil
+}
+

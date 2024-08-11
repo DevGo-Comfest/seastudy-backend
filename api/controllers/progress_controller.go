@@ -58,3 +58,27 @@ func GetUserCourseProgress(c *gin.Context, db *gorm.DB) {
 
 	c.JSON(http.StatusOK, gin.H{"progress": progressPercentage})
 }
+
+// See all students progress for that author course
+func GetStudentsProgressForCourse(c *gin.Context, db *gorm.DB) {
+	courseIDParam := c.Param("course_id")
+	courseID, err := strconv.Atoi(courseIDParam)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidCourseID})
+		return
+	}
+
+	instructorID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
+		return
+	}
+
+	studentProgressList, err := service.GetStudentsProgressForCourse(db, courseID, instructorID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToRetrieveProgress})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"students_progress": studentProgressList})
+}
