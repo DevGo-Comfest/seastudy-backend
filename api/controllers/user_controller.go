@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"sea-study/api/models"
+	"sea-study/constants"
 	"sea-study/service"
 	"sea-study/util"
 	"time"
@@ -18,20 +19,20 @@ import (
 func RegisterUser(c *gin.Context, db *gorm.DB) {
     var user models.User
     if err := c.ShouldBindJSON(&user); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidInput})
         return
     }
 
     hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
     if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+        c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToHash})
         return
     }
     user.Password = string(hashedPassword)
 
     // Call the service layer to create the user
     if err := service.CreateUser(db, &user); err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToCreateUser})
         return
     }
 
@@ -45,22 +46,22 @@ func LoginUser(c *gin.Context, db *gorm.DB) {
 	}
 
 	if err := c.ShouldBindJSON(&loginCredentials); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidInput})
 		return
 	}
 
 	var user models.User
 	if err := service.GetUserByEmail(db, &user, loginCredentials.Email); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrInvalidCredentials})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToRetrieveUser})
 		}
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginCredentials.Password)); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrInvalidCredentials})
 		return
 	}
 
@@ -73,7 +74,7 @@ func LoginUser(c *gin.Context, db *gorm.DB) {
 
 	tokenString, err := token.SignedString([]byte(util.GetJWTSecret()))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToGenerateToken})
 		return
 	}
 
@@ -93,23 +94,23 @@ func GetUserProfile(c *gin.Context, db *gorm.DB) {
 	// Get the user ID from the context (set by the UserMiddleware)
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUserNotAuthenticated})
 		return
 	}
 
 	// Convert the userID to UUID
 	userUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrInvalidUserID})
 		return
 	}
 
 	var user models.User
 	if err := service.GetUserByID(db, &user, userUUID); err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": constants.ErrUserNotFound})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user profile"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToRetrieveUserProfile})
 		}
 		return
 	}
