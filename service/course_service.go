@@ -169,3 +169,22 @@ func ActivateCourse(db *gorm.DB, userID string, courseID int) (*models.Course, e
 
 	return &course, nil
 }
+
+func GetPopularCourses(db *gorm.DB) ([]models.Course, error) {
+	var popularCourses []models.Course
+
+	err := db.Model(&models.Course{}).
+		Select("courses.*, COUNT(enrollments.enrollment_id) as enrollment_count").
+		Joins("LEFT JOIN enrollments ON courses.course_id = enrollments.course_id").
+		Where("courses.is_deleted = ? AND courses.status = ?", false, models.ActiveStatus).
+		Group("courses.course_id").
+		Order("enrollment_count DESC").
+		Limit(5).
+		Find(&popularCourses).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return popularCourses, nil
+}

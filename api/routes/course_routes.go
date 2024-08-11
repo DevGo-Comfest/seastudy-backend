@@ -19,8 +19,11 @@ func RegisterCourseRoutes(router *gin.Engine, db *gorm.DB) {
 			controllers.GetCourse(c, db)
 		})
 		api.GET("/courses/search", func(c *gin.Context) {
-            controllers.SearchCourses(c, db)
-        })
+			controllers.SearchCourses(c, db)
+		})
+		api.GET("/courses/popular", func(c *gin.Context) {
+			controllers.GetPopularCourses(c, db)
+		})
 
 		// Author only
 		authorRoutes := api.Group("/")

@@ -56,6 +56,16 @@ func GetAllCourses(c *gin.Context, db *gorm.DB) {
 	c.JSON(http.StatusOK, gin.H{"courses": courses})
 }
 
+func GetPopularCourses(c *gin.Context, db *gorm.DB) {
+	courses, err := service.GetPopularCourses(db)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToRetrieveCourses})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"courses": courses})
+}
+
 func GetCourse(c *gin.Context, db *gorm.DB) {
 	courseIDParam := c.Param("course_id")
 	courseID, err := strconv.Atoi(courseIDParam)
