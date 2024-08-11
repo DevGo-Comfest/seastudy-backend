@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"sea-study/api/models"
+	"sea-study/constants"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,7 +26,7 @@ func IsUserEnrolled(db *gorm.DB, userID uuid.UUID, courseID int) (bool, error) {
 func EnrollUser(db *gorm.DB, userID string, courseID int) (*models.Enrollment, error) {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(constants.ErrInvalidUserID)
 	}
 
 	enrolled, err := IsUserEnrolled(db, userUUID, courseID)
@@ -33,7 +34,7 @@ func EnrollUser(db *gorm.DB, userID string, courseID int) (*models.Enrollment, e
 		return nil, err
 	}
 	if enrolled {
-		return nil, fmt.Errorf("user is already enrolled in the course")
+		return nil, fmt.Errorf(constants.ErrUserAlreadyEnrolled)
 	}
 
 	var course models.Course
@@ -46,18 +47,16 @@ func EnrollUser(db *gorm.DB, userID string, courseID int) (*models.Enrollment, e
 		return nil, err
 	}
 	if balance < float64(course.Price) {
-		return nil, fmt.Errorf("insufficient balance to enroll in the course")
+		return nil, fmt.Errorf(constants.ErrInsufficientBalance)
 	}
 
 	// Start a transaction
 	tx := db.Begin()
 
-
 	if err := UpdateUserBalance(tx, userUUID, -float64(course.Price)); err != nil {
 		tx.Rollback()
 		return nil, err
 	}
-
 
 	enrollment := &models.Enrollment{
 		UserID:       userUUID,
@@ -66,10 +65,27 @@ func EnrollUser(db *gorm.DB, userID string, courseID int) (*models.Enrollment, e
 	}
 	if err := tx.Create(enrollment).Error; err != nil {
 		tx.Rollback()
-		return nil, err
+		return nil, fmt.Errorf(constants.ErrFailedToCreateEnrollment)
 	}
 
 	tx.Commit()
 
 	return enrollment, nil
+}
+
+func GetEnrolledCourses(db *gorm.DB, userID string) ([]models.Course, error) {
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, fmt.Errorf(constants.ErrInvalidUserID)
+	}
+
+	var courses []models.Course
+	err = db.Joins("JOIN enrollments ON enrollments.course_id = courses.course_id").
+		Where("enrollments.user_id = ?", userUUID).
+		Find(&courses).Error
+	if err != nil {
+		return nil, fmt.Errorf(constants.ErrFailedToRetrieveEnrolledCourses)
+	}
+
+	return courses, nil
 }

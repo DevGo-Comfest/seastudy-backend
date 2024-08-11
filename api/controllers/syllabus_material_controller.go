@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 	"sea-study/api/models"
+	"sea-study/constants"
 	"sea-study/service"
 	"strconv"
 
@@ -28,24 +29,24 @@ type UpdateSyllabusMaterialInput struct {
 func CreateSyllabusMaterial(c *gin.Context, db *gorm.DB) {
 	var input CreateSyllabusMaterialInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidInput})
 		return
 	}
 
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
 		return
 	}
 
 	// Check if the user is the instructor for the syllabus
 	var syllabus models.Syllabus
 	if err := db.First(&syllabus, input.SyllabusID).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid syllabus ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidSyllabusID})
 		return
 	}
 	if syllabus.InstructorID.String() != userID.(string) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorizedSyllabusAction})
 		return
 	}
 
@@ -58,7 +59,7 @@ func CreateSyllabusMaterial(c *gin.Context, db *gorm.DB) {
 	}
 
 	if err := service.CreateSyllabusMaterial(db, &material); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToCreateSyllabusMaterial})
 		return
 	}
 
@@ -68,36 +69,36 @@ func CreateSyllabusMaterial(c *gin.Context, db *gorm.DB) {
 func UpdateSyllabusMaterial(c *gin.Context, db *gorm.DB) {
 	var input UpdateSyllabusMaterialInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidInput})
 		return
 	}
 
 	materialID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid syllabus material ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidSyllabusMaterialID})
 		return
 	}
 
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
 		return
 	}
 
 	// Check if the user is the instructor for the syllabus
 	var material models.SyllabusMaterial
 	if err := db.First(&material, materialID).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid syllabus material ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidSyllabusMaterialID})
 		return
 	}
 
 	var syllabus models.Syllabus
 	if err := db.First(&syllabus, material.SyllabusID).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid syllabus ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidSyllabusID})
 		return
 	}
 	if syllabus.InstructorID.String() != userID.(string) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized to update this syllabus material"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorizedSyllabusAction})
 		return
 	}
 	updatedMaterial := models.SyllabusMaterial{
@@ -108,7 +109,7 @@ func UpdateSyllabusMaterial(c *gin.Context, db *gorm.DB) {
 	}
 
 	if err := service.UpdateSyllabusMaterial(db, materialID, &updatedMaterial, userID.(string)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToUpdateSyllabusMaterial})
 		return
 	}
 
@@ -118,35 +119,35 @@ func UpdateSyllabusMaterial(c *gin.Context, db *gorm.DB) {
 func DeleteSyllabusMaterial(c *gin.Context, db *gorm.DB) {
 	materialID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid syllabus material ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidSyllabusMaterialID})
 		return
 	}
 
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized "})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
 		return
 	}
 
 	// Check if the user is the instructor for the syllabus
 	var material models.SyllabusMaterial
 	if err := db.First(&material, materialID).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid syllabus material ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidSyllabusMaterialID})
 		return
 	}
 
 	var syllabus models.Syllabus
 	if err := db.First(&syllabus, material.SyllabusID).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid syllabus ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidSyllabusID})
 		return
 	}
 	if syllabus.InstructorID.String() != userID.(string) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized to delete this syllabus material"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorizedSyllabusAction})
 		return
 	}
 
 	if err := service.DeleteSyllabusMaterial(db, materialID, userID.(string)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToDeleteSyllabusMaterial})
 		return
 	}
 
@@ -156,13 +157,13 @@ func DeleteSyllabusMaterial(c *gin.Context, db *gorm.DB) {
 func GetSyllabusMaterial(c *gin.Context, db *gorm.DB) {
 	materialID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid syllabus material ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidSyllabusMaterialID})
 		return
 	}
 
 	material, err := service.GetSyllabusMaterial(db, materialID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToRetrieveSyllabusMaterial})
 		return
 	}
 

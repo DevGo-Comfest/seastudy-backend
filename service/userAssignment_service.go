@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"sea-study/api/models"
+	"sea-study/constants"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,7 +12,7 @@ import (
 
 func CreateAssignment(db *gorm.DB, assignment *models.Assignment) (*models.Assignment, error) {
 	if err := db.Create(assignment).Error; err != nil {
-		return nil, err
+		return nil, fmt.Errorf(constants.ErrFailedToCreateAssignment)
 	}
 	return assignment, nil
 }
@@ -19,12 +20,12 @@ func CreateAssignment(db *gorm.DB, assignment *models.Assignment) (*models.Assig
 func OpenAssignment(db *gorm.DB, userID string, assignmentID int) error {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
-		return fmt.Errorf("invalid user ID")
+		return fmt.Errorf(constants.ErrInvalidUserID)
 	}
 
 	assignment, err := GetAssignmentByID(db, assignmentID)
 	if err != nil {
-		return fmt.Errorf("failed to get assignment: %v", err)
+		return fmt.Errorf(constants.ErrFailedToRetrieveAssignment)
 	}
 
 	dueDate := time.Now().AddDate(0, 0, assignment.MaximumTime)
@@ -37,7 +38,7 @@ func OpenAssignment(db *gorm.DB, userID string, assignmentID int) error {
 	}
 
 	if err := CreateUserAssignment(db, &userAssignment); err != nil {
-		return fmt.Errorf("failed to create user assignment: %v", err)
+		return fmt.Errorf(constants.ErrFailedToCreateUserAssignment)
 	}
 
 	return nil
@@ -45,12 +46,9 @@ func OpenAssignment(db *gorm.DB, userID string, assignmentID int) error {
 
 func GetAssignmentByID(db *gorm.DB, assignmentID int) (*models.Assignment, error) {
 	var assignment models.Assignment
-	// if err := db.First(&assignment, assignmentID).Error; err != nil {
-	// 	return nil, err
-	// }
 	result := db.Preload("Submissions").First(&assignment, assignmentID)
 	if result.Error != nil {
-		return nil, result.Error
+		return nil, fmt.Errorf(constants.ErrFailedToRetrieveAssignment)
 	}
 	return &assignment, nil
 }
@@ -61,11 +59,14 @@ func CreateUserAssignment(db *gorm.DB, userAssignment *models.UserAssignment) er
 
 func UpdateAssignment(db *gorm.DB, assignment *models.Assignment) (*models.Assignment, error) {
 	if err := db.Save(assignment).Error; err != nil {
-		return nil, err
+		return nil, fmt.Errorf(constants.ErrFailedToUpdateAssignment)
 	}
 	return assignment, nil
 }
 
 func DeleteAssignment(db *gorm.DB, assignmentID int) error {
-	return db.Delete(&models.Assignment{}, assignmentID).Error
+	if err := db.Delete(&models.Assignment{}, assignmentID).Error; err != nil {
+		return fmt.Errorf(constants.ErrFailedToDeleteAssignment)
+	}
+	return nil
 }

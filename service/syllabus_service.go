@@ -2,8 +2,8 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"sea-study/api/models"
+	"sea-study/constants"
 
 	"gorm.io/gorm"
 )
@@ -16,12 +16,10 @@ func CreateSyllabus(db *gorm.DB, syllabus *models.Syllabus) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Max order for course_id %d: %d\n", syllabus.CourseID, maxOrder)
 	
 	// Assign the next order value
 	syllabus.Order = maxOrder + 1
-	fmt.Printf("Assigned order: %d\n", syllabus.Order)
-	
+
 	return db.Create(syllabus).Error
 }
 
@@ -33,14 +31,13 @@ func UpdateSyllabus(db *gorm.DB, syllabusID int, updatedSyllabus *models.Syllabu
 	}
 
 	if syllabus.InstructorID.String() != userID {
-		return errors.New("unauthorized to update this syllabus")
+		return errors.New(constants.ErrUnauthorizedSyllabus)
 	}
 
 	// Only update allowed fields
 	return db.Model(&syllabus).Updates(map[string]interface{}{
 		"title":        updatedSyllabus.Title,
 		"description":  updatedSyllabus.Description,
-		// "assignment_id": updatedSyllabus.AssignmentID,
 	}).Error
 }
 
@@ -53,13 +50,12 @@ func DeleteSyllabus(db *gorm.DB, syllabusID int, userID string) error {
 	}
 
 	if syllabus.InstructorID.String() != userID {
-		return errors.New("unauthorized to delete this syllabus")
+		return errors.New(constants.ErrUnauthorizedSyllabus)
 	}
 
 	// Begin a transaction
 	tx := db.Begin()
 
-	// Delete the syllabus
 	if err := tx.Delete(&models.Syllabus{}, syllabusID).Error; err != nil {
 		tx.Rollback()
 		return err
@@ -71,7 +67,6 @@ func DeleteSyllabus(db *gorm.DB, syllabusID int, userID string) error {
 		return err
 	}
 
-	// Commit the transaction
 	tx.Commit()
 
 	return nil
@@ -82,7 +77,7 @@ func DeleteSyllabus(db *gorm.DB, syllabusID int, userID string) error {
 func GetSyllabus(db *gorm.DB, syllabusID int) (*models.Syllabus, error) {
 	var syllabus models.Syllabus
 	if err := db.Preload("Materials").Preload("Assignments").First(&syllabus, syllabusID).Error; err != nil {
-		return nil, err
+		return nil, errors.New(constants.ErrSyllabusNotFound)
 	}
 	return &syllabus, nil
 }

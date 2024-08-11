@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 	"sea-study/api/models"
+	"sea-study/constants"
 	"sea-study/service"
 	"strconv"
 
@@ -18,13 +19,13 @@ type OpenAssignmentInput struct {
 func OpenAssignment(c *gin.Context, db *gorm.DB) {
 	var input OpenAssignmentInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidInput})
 		return
 	}
 
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
 		return
 	}
 
@@ -48,19 +49,19 @@ func CreateAssignment(c *gin.Context, db *gorm.DB) {
 	syllabusIDParam := c.Param("id")
 	syllabusID, err := strconv.Atoi(syllabusIDParam)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid syllabus ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidSyllabusID})
 		return
 	}
 
 	// Get the user ID from the middleware
 	instructorID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
 		return
 	}
 	userUUID, err := uuid.Parse(instructorID.(string))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidUserID})
 		return
 	}
 
@@ -72,13 +73,13 @@ func CreateAssignment(c *gin.Context, db *gorm.DB) {
 	}
 
 	if syllabus.InstructorID.String() != userUUID.String() {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorizedAssignmentAction})
 		return
 	}
 
 	var input AssignmentInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidInput})
 		return
 	}
 
@@ -91,7 +92,7 @@ func CreateAssignment(c *gin.Context, db *gorm.DB) {
 
 	createdAssignment, err := service.CreateAssignment(db, &assignment)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToCreateAssignment})
 		return
 	}
 
@@ -101,13 +102,13 @@ func CreateAssignment(c *gin.Context, db *gorm.DB) {
 func GetAssignment(c *gin.Context, db *gorm.DB) {
 	assignmentID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid assignment ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidAssignmentID})
 		return
 	}
 
 	assignment, err := service.GetAssignmentByID(db, assignmentID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Assignment not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": constants.ErrAssignmentNotFound})
 		return
 	}
 
@@ -115,7 +116,7 @@ func GetAssignment(c *gin.Context, db *gorm.DB) {
 	userID, _ := c.Get("userID")
 	syllabus, err := service.GetSyllabus(db, assignment.SyllabusID)
 	if err != nil || syllabus.InstructorID.String() != userID.(string) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorizedAssignmentAction})
 		return
 	}
 
@@ -125,19 +126,19 @@ func GetAssignment(c *gin.Context, db *gorm.DB) {
 func UpdateAssignment(c *gin.Context, db *gorm.DB) {
 	assignmentID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid assignment ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidAssignmentID})
 		return
 	}
 
 	var input AssignmentInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidInput})
 		return
 	}
 
 	assignment, err := service.GetAssignmentByID(db, assignmentID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Assignment not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": constants.ErrAssignmentNotFound})
 		return
 	}
 
@@ -145,7 +146,7 @@ func UpdateAssignment(c *gin.Context, db *gorm.DB) {
 	userID, _ := c.Get("userID")
 	syllabus, err := service.GetSyllabus(db, assignment.SyllabusID)
 	if err != nil || syllabus.InstructorID.String() != userID.(string) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorizedAssignmentAction})
 		return
 	}
 
@@ -155,7 +156,7 @@ func UpdateAssignment(c *gin.Context, db *gorm.DB) {
 
 	updatedAssignment, err := service.UpdateAssignment(db, assignment)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToUpdateAssignment})
 		return
 	}
 
@@ -165,13 +166,13 @@ func UpdateAssignment(c *gin.Context, db *gorm.DB) {
 func DeleteAssignment(c *gin.Context, db *gorm.DB) {
 	assignmentID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid assignment ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidAssignmentID})
 		return
 	}
 
 	assignment, err := service.GetAssignmentByID(db, assignmentID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Assignment not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": constants.ErrAssignmentNotFound})
 		return
 	}
 
@@ -179,12 +180,12 @@ func DeleteAssignment(c *gin.Context, db *gorm.DB) {
 	userID, _ := c.Get("userID")
 	syllabus, err := service.GetSyllabus(db, assignment.SyllabusID)
 	if err != nil || syllabus.InstructorID.String() != userID.(string) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorizedAssignmentAction})
 		return
 	}
 
 	if err := service.DeleteAssignment(db, assignmentID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToDeleteAssignment})
 		return
 	}
 

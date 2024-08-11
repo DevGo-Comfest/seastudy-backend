@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 	"sea-study/api/models"
+	"sea-study/constants"
 	"sea-study/service"
 	"strconv"
 
@@ -14,32 +15,30 @@ import (
 type CreateSyllabusInput struct {
 	Title       string `json:"title" binding:"required"`
 	Description string `json:"description"`
-	AssignmentID string `json:"assignment_id"`
 	CourseID    int    `json:"course_id" binding:"required"`
 }
 
 type UpdateSyllabusInput struct {
 	Title        string `json:"title"`
 	Description  string `json:"description"`
-	AssignmentID string `json:"assignment_id"`
 }
 
 func CreateSyllabus(c *gin.Context, db *gorm.DB) {
 	var input CreateSyllabusInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidInput})
 		return
 	}
 
 	instructorID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
 		return
 	}
 
 	instructorUUID, err := uuid.Parse(instructorID.(string))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid instructor ID format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidUserID})
 		return
 	}
 
@@ -47,12 +46,11 @@ func CreateSyllabus(c *gin.Context, db *gorm.DB) {
 		Title:        input.Title,
 		Description:  input.Description,
 		InstructorID: instructorUUID,
-		// AssignmentID: input.AssignmentID,
 		CourseID:     input.CourseID,
 	}
 
 	if err := service.CreateSyllabus(db, &syllabus); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToCreateSyllabus})
 		return
 	}
 
@@ -62,60 +60,57 @@ func CreateSyllabus(c *gin.Context, db *gorm.DB) {
 func UpdateSyllabus(c *gin.Context, db *gorm.DB) {
 	var input UpdateSyllabusInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidInput})
 		return
 	}
 
 	syllabusID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid syllabus ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidSyllabusID})
 		return
 	}
 
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
 		return
 	}
 
-	// Parse the userID string to uuid.UUID
 	instructorUUID, err := uuid.Parse(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid instructor ID format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidUserID})
 		return
 	}
 
 	updatedSyllabus := models.Syllabus{
 		Title:        input.Title,
 		Description:  input.Description,
-		InstructorID: instructorUUID, // Use the parsed uuid.UUID value here
-		// AssignmentID: input.AssignmentID,
+		InstructorID: instructorUUID,
 	}
 
 	if err := service.UpdateSyllabus(db, syllabusID, &updatedSyllabus, userID.(string)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToUpdateSyllabus})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Syllabus updated successfully", "syllabus": updatedSyllabus})
 }
 
-
 func DeleteSyllabus(c *gin.Context, db *gorm.DB) {
 	syllabusID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid syllabus ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidSyllabusID})
 		return
 	}
 
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
 		return
 	}
 
 	if err := service.DeleteSyllabus(db, syllabusID, userID.(string)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToDeleteSyllabus})
 		return
 	}
 
@@ -125,13 +120,13 @@ func DeleteSyllabus(c *gin.Context, db *gorm.DB) {
 func GetSyllabus(c *gin.Context, db *gorm.DB) {
 	syllabusID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid syllabus ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidSyllabusID})
 		return
 	}
 
 	syllabus, err := service.GetSyllabus(db, syllabusID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToRetrieveSyllabus})
 		return
 	}
 

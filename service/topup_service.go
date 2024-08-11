@@ -1,7 +1,9 @@
 package service
 
 import (
+	"fmt"
 	"sea-study/api/models"
+	"sea-study/constants"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,7 +13,7 @@ import (
 func CreateTopup(db *gorm.DB, userID string, amount float64, paymentMethod string) (*models.TopupHistory, error) {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(constants.ErrInvalidUserID)
 	}
 
 	topup := &models.TopupHistory{
@@ -26,12 +28,12 @@ func CreateTopup(db *gorm.DB, userID string, amount float64, paymentMethod strin
 	tx := db.Begin()
 	if err := tx.Create(topup).Error; err != nil {
 		tx.Rollback()
-		return nil, err
+		return nil, fmt.Errorf(constants.ErrFailedToCreateTopup)
 	}
 
 	if err := UpdateUserBalance(tx, userUUID, amount); err != nil {
 		tx.Rollback()
-		return nil, err
+		return nil, fmt.Errorf(constants.ErrFailedToUpdateUserBalance)
 	}
 
 	tx.Commit()

@@ -3,6 +3,7 @@ package main
 import (
 	"sea-study/api/routes"
 	"sea-study/config"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -16,8 +17,17 @@ func main() {
 	// Initialize the database
 	db := config.InitDB()
 
-    // Enable CORS for all origins
-    r.Use(cors.Default())
+
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},  
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept", "X-Requested-With"},
+		ExposeHeaders:    []string{"Content-Length", "Content-Type"},
+		AllowCredentials: false,  
+		MaxAge:           24 * time.Hour, 
+	}))
+	
+	
 	
 	if db != nil {
 		r.GET("/", func(c *gin.Context) {
@@ -42,7 +52,7 @@ func main() {
 	routes.RegisterAssignmentRoutes(r, db)
 	routes.RegisterSyllabusMaterialRoutes(r, db)	
 	routes.RegisterSubmissionRoutes(r, db)
-	// routes.RegisterProgressRoutes(r, db)
+	routes.RegisterProgressRoutes(r, db)
 
 
 	r.Run() // listen and serve on 0.0.0.0:8080

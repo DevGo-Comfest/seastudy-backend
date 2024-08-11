@@ -1,9 +1,11 @@
 package service
 
 import (
+	"fmt"
 	"time"
 
 	"sea-study/api/models"
+	"sea-study/constants"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -22,18 +24,18 @@ type ForumPostResponse struct {
 func CreateForumPost(db *gorm.DB, userID string, courseID int, content string) (*models.ForumPost, error) {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(constants.ErrInvalidUserID)
 	}
 
 	forumPost := &models.ForumPost{
-		CourseID:    courseID,
-		UserID:      userUUID,
-		Content:     content,
-		DatePosted:  time.Now(),
+		CourseID:   courseID,
+		UserID:     userUUID,
+		Content:    content,
+		DatePosted: time.Now(),
 	}
 
 	if err := db.Create(forumPost).Error; err != nil {
-		return nil, err
+		return nil, fmt.Errorf(constants.ErrFailedToCreateForumPost)
 	}
 
 	return forumPost, nil
@@ -50,7 +52,7 @@ func GetForumPosts(db *gorm.DB, courseID int) ([]ForumPostResponse, error) {
 		Scan(&forumPostResponses).Error
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(constants.ErrFailedToRetrievePosts)
 	}
 
 	return forumPostResponses, nil
