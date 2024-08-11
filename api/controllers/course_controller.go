@@ -30,7 +30,7 @@ func CreateCourse(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	input.UserID = userUUID
+	input.PrimaryAuthor = userUUID
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidInput})
@@ -88,7 +88,7 @@ func UpdateCourse(c *gin.Context, db *gorm.DB) {
 	var input models.CourseInput
 
 	userID := c.GetString("userID")
-	input.UserID = uuid.MustParse(userID)
+	input.PrimaryAuthor = uuid.MustParse(userID)
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidInput})
 		return
@@ -178,7 +178,7 @@ func AddCourseInstructors(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	if course.UserID != userUUID {
+	if course.PrimaryAuthor != userUUID {
 		c.JSON(http.StatusForbidden, gin.H{"error": constants.ErrUnauthorized})
 		return
 	}
