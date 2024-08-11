@@ -18,7 +18,7 @@ func RegisterCourseRoutes(router *gin.Engine, db *gorm.DB) {
 		api.GET("/courses/:course_id", func(c *gin.Context) {
 			controllers.GetCourse(c, db)
 		})
-		api.GET("/course/search", func(c *gin.Context) {
+		api.GET("/courses/search", func(c *gin.Context) {
             controllers.SearchCourses(c, db)
         })
 
