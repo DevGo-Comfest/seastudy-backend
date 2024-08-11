@@ -222,3 +222,24 @@ func SearchCourses(c *gin.Context, db *gorm.DB) {
 
 	c.JSON(http.StatusOK, gin.H{"courses": courses})
 }
+
+func GetMyCourse(c *gin.Context, db *gorm.DB) {
+	userID := c.GetString("userID")
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidUserID})
+		return
+	}
+
+	course, err := service.GetCoursesByUser(db, userUUID)
+	if err != nil {
+		if err.Error() == "course not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": constants.ErrCourseNotFound})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToRetrieveCourses})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"course": course})
+}

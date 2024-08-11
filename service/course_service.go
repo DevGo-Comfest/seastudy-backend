@@ -2,10 +2,11 @@ package service
 
 import (
 	"fmt"
-	"github.com/google/uuid"
-	"gorm.io/gorm"
 	"log"
 	"sea-study/api/models"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 func CreateCourse(db *gorm.DB, input *models.CourseInput) (*models.Course, error) {
@@ -25,6 +26,7 @@ func CreateCourse(db *gorm.DB, input *models.CourseInput) (*models.Course, error
 	return course, nil
 }
 
+// Get all courses
 func GetAllCourses(db *gorm.DB) ([]models.Course, error) {
 	var courses []models.Course
 	result := db.Where("is_deleted = ? AND status = ?", false, models.ActiveStatus).Find(&courses)
@@ -34,6 +36,7 @@ func GetAllCourses(db *gorm.DB) ([]models.Course, error) {
 	return courses, nil
 }
 
+// Get course detail
 func GetCourse(db *gorm.DB, courseID int) (*models.Course, error) {
 	var course models.Course
 	result := db.Preload("Syllabuses", func(db *gorm.DB) *gorm.DB {
@@ -81,8 +84,11 @@ func DeleteCourse(db *gorm.DB, courseID int) error {
 		return result.Error
 	}
 
-	// Soft delete by updating is_deleted to true
-	if err := db.Model(&course).Update("is_deleted", true).Error; err != nil {
+	// Soft delete by updating is_deleted to true and status to inactive
+	if err := db.Model(&course).Updates(map[string]interface{}{
+		"is_deleted": true,
+		"status":     models.InactiveStatus,
+	}).Error; err != nil {
 		return err
 	}
 	return nil
@@ -129,6 +135,15 @@ func SearchCourses(db *gorm.DB, query, category, difficulty string, rating int) 
 	err := queryBuilder.Preload("Syllabuses").Find(&courses).Error
 	if err != nil {
 		return nil, err
+	}
+	return courses, nil
+}
+
+func GetCoursesByUser(db *gorm.DB, userID uuid.UUID) ([]models.Course, error) {
+	var courses []models.Course
+	result := db.Where("user_id = ? AND is_deleted = ?", userID, false).Find(&courses)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 	return courses, nil
 }

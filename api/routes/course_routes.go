@@ -29,6 +29,9 @@ func RegisterCourseRoutes(router *gin.Engine, db *gorm.DB) {
 			authorRoutes.POST("/courses", func(c *gin.Context) {
 				controllers.CreateCourse(c, db)
 			})
+			authorRoutes.GET("/courses/me", func(c *gin.Context) {
+				controllers.GetMyCourse(c, db)
+			})
 			authorRoutes.POST("/courses/:course_id/instructors", func(c *gin.Context) {
 				controllers.AddCourseInstructors(c, db)
 			})
