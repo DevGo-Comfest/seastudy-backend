@@ -44,6 +44,9 @@ func RegisterCourseRoutes(router *gin.Engine, db *gorm.DB) {
 			authorRoutes.POST("/courses/upload/image", func(c *gin.Context) {
 				controllers.UploadCourseImage(c, db)
 			})
+			authorRoutes.PUT("/courses/:course_id/activate", func(c *gin.Context) {
+				controllers.ActivateCourse(c, db)
+			})
 		}
 	}
 }
