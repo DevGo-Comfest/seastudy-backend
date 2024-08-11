@@ -17,5 +17,8 @@ func RegisterTopupRoutes(router *gin.Engine, db *gorm.DB) {
 		authenticated.POST("/topup", func(c *gin.Context) {
 			controllers.Topup(c, db)
 		})
+		authenticated.GET("/topup/history", func(c *gin.Context) {
+			controllers.GetTopupHistory(c, db)
+		})
 	}
 }

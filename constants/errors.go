@@ -96,6 +96,7 @@ const (
 const (
 	ErrFailedToCreateTopup       = "failed to create top-up"
 	ErrFailedToUpdateUserBalance = "failed to update user balance"
+	ErrFailedToRetrieveTopupHistory = "fialed to retriver top-up history"
 )
 
 // Assignment Errors

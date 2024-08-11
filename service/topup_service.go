@@ -19,7 +19,7 @@ func CreateTopup(db *gorm.DB, userID string, amount float64, paymentMethod strin
 	topup := &models.TopupHistory{
 		UserID:        userUUID,
 		Amount:        amount,
-		Status:        "pending",
+		Status:        "completed",
 		PaymentMethod: paymentMethod,
 		CreatedDate:   time.Now(),
 	}
@@ -39,4 +39,19 @@ func CreateTopup(db *gorm.DB, userID string, amount float64, paymentMethod strin
 	tx.Commit()
 
 	return topup, nil
+}
+
+func GetTopupHistory(db *gorm.DB, userID string) ([]models.TopupHistory, error) {
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, fmt.Errorf(constants.ErrInvalidUserID)
+	}
+
+	var history []models.TopupHistory
+	err = db.Where("user_id = ?", userUUID).Order("created_date desc").Find(&history).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return history, nil
 }
