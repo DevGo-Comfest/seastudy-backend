@@ -49,3 +49,21 @@ const (
     Submitted      SubmissionStatusEnum = "submitted"
     Graded         SubmissionStatusEnum = "graded"
 )
+
+
+// Course category enums
+type CategoryEnum string
+
+const (
+    Android          CategoryEnum = "Android"
+    Web              CategoryEnum = "Web"
+    Desktop          CategoryEnum = "Desktop"
+    Multiplatform    CategoryEnum = "Multiplatform"
+    Game             CategoryEnum = "Game"
+    IOS              CategoryEnum = "IOS"
+    MachineLearning  CategoryEnum = "Machine Learning"
+    DataScientist    CategoryEnum = "Data Scientist"
+    React            CategoryEnum = "React"
+    DevOps           CategoryEnum = "DevOps"
+    Cloud            CategoryEnum = "Cloud"
+)
