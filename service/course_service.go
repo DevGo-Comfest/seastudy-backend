@@ -142,7 +142,7 @@ func SearchCourses(db *gorm.DB, query, category, difficulty string, rating int) 
 
 func GetCoursesByUser(db *gorm.DB, userID uuid.UUID) ([]models.Course, error) {
 	var courses []models.Course
-	result := db.Where("user_id = ? AND is_deleted = ?", userID, false).Find(&courses)
+	result := db.Where("primary_author = ? AND is_deleted = ?", userID, false).Find(&courses)
 	if result.Error != nil {
 		return nil, result.Error
 	}
