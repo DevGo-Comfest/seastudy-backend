@@ -14,7 +14,7 @@ type CourseInput struct {
 	Title           string         `json:"title" binding:"required"`
 	Description     string         `json:"description" binding:"required"`
 	Price           int            `json:"price" binding:"required"`
-	Category        string         `json:"category" binding:"required"`
+	Category        CategoryEnum   `json:"category" binding:"required"`
 	ImageURL        string         `json:"image_url" binding:"required"`
 	DifficultyLevel DifficultyEnum `json:"difficulty_level" binding:"required"`
 	UserID          uuid.UUID      `json:"user_id" binding:"required"`

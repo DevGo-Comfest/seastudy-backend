@@ -20,27 +20,28 @@ func CreateCourse(db *gorm.DB, input *models.CourseInput) (*models.Course, error
 		DifficultyLevel: input.DifficultyLevel,
 		UserID:          input.UserID,
 	}
-
 	if err := db.Create(course).Error; err != nil {
 		return nil, err
 	}
 	return course, nil
 }
 
+// Get all courses
 func GetAllCourses(db *gorm.DB) ([]models.Course, error) {
 	var courses []models.Course
-	result := db.Where("status = ?", models.ActiveStatus).Find(&courses)
+	result := db.Where("is_deleted = ? AND status = ?", false, models.ActiveStatus).Find(&courses)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return courses, nil
 }
 
+// Get course detail
 func GetCourse(db *gorm.DB, courseID int) (*models.Course, error) {
 	var course models.Course
 	result := db.Preload("Syllabuses", func(db *gorm.DB) *gorm.DB {
 		return db.Order("syllabuses.order")
-	}).Where("course_id = ? AND status = ?", courseID, models.ActiveStatus).First(&course)
+	}).Where("course_id = ? AND is_deleted = ? AND status = ?", courseID, false, models.ActiveStatus).First(&course)
 	if result.Error != nil {
 		log.Println(result.Error)
 		if result.Error == gorm.ErrRecordNotFound {
@@ -53,22 +54,20 @@ func GetCourse(db *gorm.DB, courseID int) (*models.Course, error) {
 
 func UpdateCourse(db *gorm.DB, courseID int, input *models.CourseInput) (*models.Course, error) {
 	var course models.Course
-	result := db.First(&course, courseID)
+	result := db.Where("course_id = ? AND is_deleted = ?", courseID, false).First(&course)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("course not found")
+			return nil, fmt.Errorf("course not found or has been deleted")
 		}
 		return nil, result.Error
 	}
 	categoryEnum := models.CategoryEnum(input.Category)
-
 	course.Title = input.Title
 	course.Description = input.Description
 	course.Price = input.Price
 	course.Category = categoryEnum
 	course.ImageURL = input.ImageURL
 	course.DifficultyLevel = input.DifficultyLevel
-
 	if err := db.Save(&course).Error; err != nil {
 		return nil, err
 	}
@@ -77,21 +76,34 @@ func UpdateCourse(db *gorm.DB, courseID int, input *models.CourseInput) (*models
 
 func DeleteCourse(db *gorm.DB, courseID int) error {
 	var course models.Course
-	result := db.First(&course, courseID)
+	result := db.Where("course_id = ? AND is_deleted = ?", courseID, false).First(&course)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
-			return fmt.Errorf("course not found")
+			return fmt.Errorf("course not found or already deleted")
 		}
 		return result.Error
 	}
 
-	if err := db.Delete(&course).Error; err != nil {
+	// Soft delete by updating is_deleted to true and status to inactive
+	if err := db.Model(&course).Updates(map[string]interface{}{
+		"is_deleted": true,
+		"status":     models.InactiveStatus,
+	}).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 func AddCourseInstructors(db *gorm.DB, courseID int, instructorIDs []uuid.UUID) error {
+	// First, check if the course exists and is not deleted
+	var course models.Course
+	if err := db.Where("course_id = ? AND is_deleted = ?", courseID, false).First(&course).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return fmt.Errorf("course not found or has been deleted")
+		}
+		return err
+	}
+
 	for _, instructorID := range instructorIDs {
 		courseInstructor := &models.CourseInstructor{
 			CourseID:     courseID,
@@ -104,34 +116,34 @@ func AddCourseInstructors(db *gorm.DB, courseID int, instructorIDs []uuid.UUID) 
 	return nil
 }
 
-
 func SearchCourses(db *gorm.DB, query, category, difficulty string, rating int) ([]models.Course, error) {
 	var courses []models.Course
-
 	queryBuilder := db.Model(&models.Course{}).
-    Where("is_deleted = ? AND status = ?", false, models.ActiveStatus)
-
-
+		Where("is_deleted = ? AND status = ?", false, models.ActiveStatus)
 	if query != "" {
 		queryBuilder = queryBuilder.Where("title ILIKE ? OR description ILIKE ?", "%"+query+"%", "%"+query+"%")
 	}
-
 	if category != "" {
 		queryBuilder = queryBuilder.Where("category = ?", category)
 	}
-
 	if difficulty != "" {
 		queryBuilder = queryBuilder.Where("difficulty_level = ?", difficulty)
 	}
-
 	if rating > 0 {
 		queryBuilder = queryBuilder.Where("rating >= ?", rating)
 	}
-
 	err := queryBuilder.Preload("Syllabuses").Find(&courses).Error
 	if err != nil {
 		return nil, err
 	}
+	return courses, nil
+}
 
+func GetCoursesByUser(db *gorm.DB, userID uuid.UUID) ([]models.Course, error) {
+	var courses []models.Course
+	result := db.Where("user_id = ? AND is_deleted = ?", userID, false).Find(&courses)
+	if result.Error != nil {
+		return nil, result.Error
+	}
 	return courses, nil
 }
