@@ -37,12 +37,10 @@ func GetAllCourses(db *gorm.DB) ([]models.Course, error) {
 	return courses, nil
 }
 
-// Get course detail
+// Get course by ID
 func GetCourse(db *gorm.DB, courseID int) (*models.Course, error) {
 	var course models.Course
-	result := db.Preload("Syllabuses", func(db *gorm.DB) *gorm.DB {
-		return db.Order("syllabuses.order")
-	}).Where("course_id = ? AND is_deleted = ? AND status = ?", courseID, false, models.ActiveStatus).First(&course)
+	result := db.First(&course, courseID)
 	if result.Error != nil {
 		log.Println(result.Error)
 		if result.Error == gorm.ErrRecordNotFound {
@@ -50,6 +48,58 @@ func GetCourse(db *gorm.DB, courseID int) (*models.Course, error) {
 		}
 		return nil, result.Error
 	}
+	return &course, nil
+}
+
+// Get course detail
+func GetCourseDetail(db *gorm.DB, courseID int, userID uuid.UUID) (*models.Course, error) {
+	var course models.Course
+
+	// Fetch the course with syllabuses
+	result := db.Preload("Syllabuses", func(db *gorm.DB) *gorm.DB {
+		return db.Order("syllabuses.order")
+	}).Where("course_id = ? AND is_deleted = ? AND status = ?", courseID, false, models.ActiveStatus).First(&course)
+
+	if result.Error != nil {
+		log.Println(result.Error)
+		if result.Error == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("course not found")
+		}
+		return nil, result.Error
+	}
+
+	// Check if the user is enrolled in the course (only if userID is provided)
+	if userID != uuid.Nil {
+		var enrollment models.Enrollment
+		enrollmentResult := db.Where("course_id = ? AND user_id = ?", courseID, userID).First(&enrollment)
+		isEnrolled := enrollmentResult.Error == nil
+
+		if isEnrolled {
+			// Fetch user progress for this course
+			var progresses []models.UserProgress
+			db.Where("course_id = ? AND user_id = ?", courseID, userID).Order("syllabus_id").Find(&progresses)
+
+			progressMap := make(map[int]models.ProgressStatusEnum)
+			for _, progress := range progresses {
+				progressMap[progress.SyllabusID] = progress.Status
+			}
+
+			// Update is_locked status for syllabuses
+			previousCompleted := true // First syllabus is always unlocked if enrolled
+			for i := range course.Syllabuses {
+				isLocked := false
+				if i > 0 {
+					// Only lock if the previous syllabus isn't completed
+					previousSyllabusID := course.Syllabuses[i-1].SyllabusID
+					previousCompleted = progressMap[previousSyllabusID] == models.Completed
+					isLocked = !previousCompleted
+				}
+				course.Syllabuses[i].IsLocked = &isLocked
+			}
+		}
+	}
+	// If not enrolled or userID not provided, IsLocked remains nil and will be omitted from JSON output
+
 	return &course, nil
 }
 

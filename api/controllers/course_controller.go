@@ -74,7 +74,17 @@ func GetCourse(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	course, err := service.GetCourse(db, courseID)
+	var userUUID uuid.UUID
+	userID, exists := c.Get("userID")
+	if exists {
+		userUUID, err = uuid.Parse(userID.(string))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidUserID})
+			return
+		}
+	}
+
+	course, err := service.GetCourseDetail(db, courseID, userUUID)
 	if err != nil {
 		if err.Error() == "course not found" {
 			c.JSON(http.StatusNotFound, gin.H{"error": constants.ErrCourseNotFound})

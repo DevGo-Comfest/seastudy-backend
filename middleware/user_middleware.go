@@ -15,8 +15,16 @@ import (
 
 func UserMiddleware(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
+
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
+			// Check if the current path is exactly "/api/courses" and the method is GET
+			// If so, bypass the middleware
+			if c.FullPath() == "/api/courses/:course_id" && c.Request.Method == "GET" {
+				c.Next()
+				return
+			}
+
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
 			c.Abort()
 			return

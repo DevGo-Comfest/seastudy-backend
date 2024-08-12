@@ -15,15 +15,18 @@ func RegisterCourseRoutes(router *gin.Engine, db *gorm.DB) {
 		api.GET("/courses", func(c *gin.Context) {
 			controllers.GetAllCourses(c, db)
 		})
-		api.GET("/courses/:course_id", func(c *gin.Context) {
-			controllers.GetCourse(c, db)
-		})
 		api.GET("/courses/search", func(c *gin.Context) {
 			controllers.SearchCourses(c, db)
 		})
-		api.GET("/courses/popular", func(c *gin.Context) {
-			controllers.GetPopularCourses(c, db)
-		})
+
+		// User only
+		userRoutes := api.Group("/")
+		userRoutes.Use(middleware.UserMiddleware(db))
+		{
+			userRoutes.GET("/courses/:course_id", func(c *gin.Context) {
+				controllers.GetCourse(c, db)
+			})
+		}
 
 		// Author only
 		authorRoutes := api.Group("/")
