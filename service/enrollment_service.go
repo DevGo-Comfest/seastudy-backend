@@ -72,6 +72,18 @@ func EnrollUser(db *gorm.DB, userID string, courseID int) (*models.Enrollment, e
         return nil, fmt.Errorf(constants.ErrFailedToCreateEnrollment)
     }
 
+    // Update user progress for the first syllabus in the course
+    var firstSyllabus models.Syllabus
+    if err := tx.Where("course_id = ?", courseID).Order("\"order\"").First(&firstSyllabus).Error; err != nil {
+        tx.Rollback()
+        return nil, fmt.Errorf("failed to get the first syllabus: %v", err)
+    }
+
+    if err := UpdateUserProgress(tx, userID, courseID, firstSyllabus.SyllabusID); err != nil {
+        tx.Rollback()
+        return nil, fmt.Errorf("failed to update user progress: %v", err)
+    }
+
     tx.Commit()
 
     var username string
