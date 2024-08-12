@@ -2,22 +2,42 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"sea-study/api/models"
 	"sea-study/constants"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 // CreateSyllabus creates a new syllabus with automatic order assignment
-func CreateSyllabus(db *gorm.DB, syllabus *models.Syllabus) error {
-	// Find the highest order for the course
-	var maxOrder int
-	err := db.Model(&models.Syllabus{}).Where("course_id = ?", syllabus.CourseID).Select("COALESCE(MAX(\"order\"), 0)").Row().Scan(&maxOrder)
+func CreateSyllabus(db *gorm.DB, syllabus *models.Syllabus, userID uuid.UUID) error {
+	// Check if the user is the primary author or an instructor for the course
+	var count int64
+	err := db.Table("course_instructors").
+		Where("course_instructors.course_id = ? AND course_instructors.instructor_id = ?", syllabus.CourseID, userID).
+		Count(&count).Error
+
 	if err != nil {
 		return err
 	}
-	
-	// Assign the next order value
+
+	if count == 0 {
+		err = db.Model(&models.Course{}).
+			Where("course_id = ? AND primary_author = ?", syllabus.CourseID, userID).
+			Count(&count).Error
+
+		if err != nil || count == 0 {
+			return fmt.Errorf(constants.ErrUnauthorized)
+		}
+	}
+
+	var maxOrder int
+	err = db.Model(&models.Syllabus{}).Where("course_id = ?", syllabus.CourseID).Select("COALESCE(MAX(\"order\"), 0)").Row().Scan(&maxOrder)
+	if err != nil {
+		return err
+	}
+
 	syllabus.Order = maxOrder + 1
 
 	return db.Create(syllabus).Error
