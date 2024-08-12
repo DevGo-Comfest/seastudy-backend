@@ -6,16 +6,15 @@ import (
 	"sea-study/api/models"
 	"sea-study/constants"
 
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 // CreateSyllabus creates a new syllabus with automatic order assignment
-func CreateSyllabus(db *gorm.DB, syllabus *models.Syllabus, userID uuid.UUID) error {
+func CreateSyllabus(db *gorm.DB, syllabus *models.Syllabus) error {
 	// Check if the user is the primary author or an instructor for the course
 	var count int64
 	err := db.Table("course_instructors").
-		Where("course_instructors.course_id = ? AND course_instructors.instructor_id = ?", syllabus.CourseID, userID).
+		Where("course_instructors.course_id = ? AND course_instructors.instructor_id = ?", syllabus.CourseID, syllabus.InstructorID).
 		Count(&count).Error
 
 	if err != nil {
@@ -24,7 +23,7 @@ func CreateSyllabus(db *gorm.DB, syllabus *models.Syllabus, userID uuid.UUID) er
 
 	if count == 0 {
 		err = db.Model(&models.Course{}).
-			Where("course_id = ? AND primary_author = ?", syllabus.CourseID, userID).
+			Where("course_id = ? AND primary_author = ?", syllabus.CourseID, syllabus.InstructorID).
 			Count(&count).Error
 
 		if err != nil || count == 0 {
