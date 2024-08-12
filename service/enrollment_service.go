@@ -80,17 +80,19 @@ func EnrollUser(db *gorm.DB, userID string, courseID int) (*models.Enrollment, e
         username = "Student"
     }
 
-    // Send enrollment notification emails to all instructors
-    instructorEmails, err := getInstructorEmails(db, courseID)
-    if err != nil {
-        log.Printf("Failed to get instructor emails: %v", err)
-    } else {
+    // Send enrollment notification emails to all instructors asynchronously
+    go func() {
+        instructorEmails, err := getInstructorEmails(db, courseID)
+        if err != nil {
+            log.Printf("Failed to get instructor emails: %v", err)
+            return
+        }
         for _, email := range instructorEmails {
             if err := sendEnrollmentEmail(email, course.Title, username); err != nil {
                 log.Printf("Failed to send email to %s: %v", email, err)
             }
         }
-    }
+    }()
 
 
     return enrollment, nil
