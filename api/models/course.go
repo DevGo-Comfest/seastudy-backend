@@ -23,6 +23,7 @@ type CourseInput struct {
 type Course struct {
 	CourseID        int              `gorm:"primaryKey;autoIncrement"`
 	PrimaryAuthor   uuid.UUID        `gorm:"type:uuid;not null"`
+	PrimaryAuthorName string 	   	 `gorm:"-" json:"PrimaryAuthorName,omitempty"`
 	Title           string           `gorm:"type:varchar(255)"`
 	Description     string           `gorm:"type:text"`
 	Price           int              `gorm:"type:int"`
