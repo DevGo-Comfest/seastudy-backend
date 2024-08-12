@@ -11,6 +11,7 @@ type Syllabus struct {
 	Description  string             `gorm:"type:text"`
 	InstructorID uuid.UUID          `gorm:"type:uuid;not null"`
 	CourseID     int                `gorm:"type:int;not null"`
+	IsLocked     *bool              `gorm:"-" json:"is_locked,omitempty"`
 	Materials    []SyllabusMaterial `gorm:"foreignKey:SyllabusID;constraint:OnDelete:CASCADE"`
 	Assignments  []Assignment       `gorm:"foreignKey:SyllabusID;constraint:OnDelete:CASCADE"`
 }
