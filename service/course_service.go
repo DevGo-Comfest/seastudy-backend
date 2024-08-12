@@ -68,6 +68,12 @@ func GetCourseDetail(db *gorm.DB, courseID int, userID uuid.UUID) (*models.Cours
 		return nil, result.Error
 	}
 
+	// Fetch primary author's name
+	var primaryAuthor models.User
+	if err := db.Where("user_id = ?", course.PrimaryAuthor).First(&primaryAuthor).Error; err == nil {
+		course.PrimaryAuthorName = primaryAuthor.Name
+	}
+
 	// Check if the user is enrolled in the course (only if userID is provided)
 	if userID != uuid.Nil {
 		var enrollment models.Enrollment
@@ -98,7 +104,7 @@ func GetCourseDetail(db *gorm.DB, courseID int, userID uuid.UUID) (*models.Cours
 			}
 		}
 	}
-	// If not enrolled or userID not provided, IsLocked remains nil and will be omitted from JSON output
+	// If not enrolled or userID not provided, IsLocked remains null for all syllabuses
 
 	return &course, nil
 }
