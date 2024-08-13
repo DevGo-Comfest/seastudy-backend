@@ -1,9 +1,11 @@
 package controllers
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"net/http"
-	"os"
+	"path/filepath"
 	"sea-study/api/models"
 	"sea-study/constants"
 	"sea-study/service"
@@ -155,18 +157,35 @@ func UploadCourseImage(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	extension := file.Filename[len(file.Filename)-4:]
+	fileContent, err := file.Open()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToOpenFile})
+		return
+	}
+	defer fileContent.Close()
 
-	imageID := uuid.New().String()
-
-	filePath := fmt.Sprintf("uploads/%s%s", imageID, extension)
-	if err := c.SaveUploadedFile(file, filePath); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToSaveImage})
+	buf := new(bytes.Buffer)
+	_, err = io.Copy(buf, fileContent)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToReadFile})
 		return
 	}
 
-	hostURL := os.Getenv("HOST_URL")
-	imageURL := fmt.Sprintf("%s/%s", hostURL, filePath)
+	extension := filepath.Ext(file.Filename)
+	imageID := uuid.New().String()
+	filePath := fmt.Sprintf("%s%s", imageID, extension)
+
+	r2Service, err := service.NewR2Service()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToSaveFile})
+		return
+	}
+
+	imageURL, err := r2Service.UploadFile(filePath, buf.Bytes())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToSaveFile})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Image uploaded successfully", "image_url": imageURL})
 }

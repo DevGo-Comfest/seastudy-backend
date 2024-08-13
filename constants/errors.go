@@ -18,6 +18,7 @@ const (
 const (
 	ErrFailedToUploadImage = "failed to upload image"
 	ErrFailedToSaveImage   = "failed to save image"
+	ErrFailedToSaveFile   = "failed to save file"
 )
 
 // Generic Errors
@@ -35,6 +36,9 @@ const (
 	ErrFailedToRetrieveCourse  = "failed to retrieve course"
 	ErrInvalidRating           = "Invalid rating"
 	ErrFailedToRetrieveCourses = "Failed to retrieve courses"
+	ErrFailedToOpenFile = "failed to open file"
+	ErrFailedToReadFile = "failed to read file"
+
 )
 
 // Syllabus Errors
