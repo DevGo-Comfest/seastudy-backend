@@ -169,3 +169,26 @@ func GetSyllabusMaterial(c *gin.Context, db *gorm.DB) {
 
 	c.JSON(http.StatusOK, gin.H{"syllabus_material": material})
 }
+
+func GetSyllabusMaterialBySyllabus(c *gin.Context, db *gorm.DB) {
+	syllabusID, err := strconv.Atoi(c.Param("syllabus_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidSyllabusID})
+		return
+	}
+
+	// Check if the user is authenticated or not
+	_, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
+		return
+	}
+
+	materials, err := service.GetSyllabusMaterialsBySyllabusID(db, syllabusID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToRetrieveSyllabusMaterial})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"syllabus_materials": materials})
+}
