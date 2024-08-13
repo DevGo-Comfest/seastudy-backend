@@ -21,6 +21,12 @@ func RegisterCourseRoutes(router *gin.Engine, db *gorm.DB) {
 		api.GET("/courses/search", func(c *gin.Context) {
 			controllers.SearchCourses(c, db)
 		})
+		api.GET("/courses/:course_id/instructors", func(c *gin.Context) {
+			controllers.GetCourseInstructors(c, db)
+		})
+		api.GET("/instructors", func(c *gin.Context) {
+			controllers.GetInstructors(c, db)
+		})
 
 		// User only
 		userRoutes := api.Group("/")

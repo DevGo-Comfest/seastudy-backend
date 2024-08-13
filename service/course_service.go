@@ -244,3 +244,32 @@ func GetPopularCourses(db *gorm.DB) ([]models.Course, error) {
 
 	return popularCourses, nil
 }
+
+func GetCourseInstructors(db *gorm.DB, courseID int) ([]models.User, error) {
+	var instructors []models.User
+
+	err := db.Table("users").
+		Select("users.*").
+		Joins("JOIN course_instructors ON users.user_id = course_instructors.instructor_id").
+		Where("course_instructors.course_id = ?", courseID).
+		Find(&instructors).Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf(constants.ErrNoInstructorsFound)
+		}
+		return nil, fmt.Errorf(constants.ErrFailedToRetrieveInstructors)
+	}
+
+	return instructors, nil
+}
+
+
+func GetInstructors(db *gorm.DB) ([]models.User, error) {
+	var authors []models.User
+	result := db.Where("role = ?", models.AuthorRole).Find(&authors)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return authors, nil
+}
