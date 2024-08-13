@@ -111,15 +111,15 @@ func updateCourseRating(tx *gorm.DB, courseID int) error {
 func GetCourseReviews(db *gorm.DB, courseID int) ([]CourseReviewResponse, error) {
 	var reviewResponses []CourseReviewResponse
 
-	err := db.Table("course_reviews").
+    err := db.Table("course_reviews").
 		Select("course_reviews.course_review_id, course_reviews.course_id, course_reviews.feedback_text, course_reviews.user_id, course_reviews.created_at, course_reviews.rate, users.name as user_name, users.role as user_role").
 		Joins("left join users on course_reviews.user_id = users.user_id").
-		Where("course_reviews.course_id = ? AND status = ? ", courseID,models.ActiveStatus).
+		Joins("left join courses on course_reviews.course_id = courses.course_id").
+		Where("course_reviews.course_id = ? AND courses.status = ?", courseID, models.ActiveStatus).
 		Order("course_reviews.created_at desc").
 		Scan(&reviewResponses).Error
-
 	if err != nil {
-		return nil, fmt.Errorf(constants.ErrFailedToRetrieveReviews)
+		return nil, fmt.Errorf(err.Error())
 	}
 
 	return reviewResponses, nil
