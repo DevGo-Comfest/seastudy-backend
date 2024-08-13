@@ -11,6 +11,13 @@ import (
 func RegisterSyllabusMaterialRoutes(router *gin.Engine, db *gorm.DB) {
 	api := router.Group("/api")
 	{
+		authenticated := api.Group("/")
+		authenticated.Use(middleware.UserMiddleware(db))
+		{
+			authenticated.GET("/syllabus-materials/:syllabus_id", func(c *gin.Context) {
+				controllers.GetSyllabusMaterialBySyllabus(c, db)
+			})
+		}
 		// Author only
 		authorRoutes := api.Group("/")
 		authorRoutes.Use(middleware.UserMiddleware(db), middleware.AuthorMiddleware())

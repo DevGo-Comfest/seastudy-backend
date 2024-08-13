@@ -84,3 +84,12 @@ func GetSyllabusMaterial(db *gorm.DB, materialID int) (*models.SyllabusMaterial,
 	}
 	return &material, nil
 }
+
+// GetSyllabusMaterialsBySyllabusID gets all syllabus materials for a syllabus
+func GetSyllabusMaterialsBySyllabusID(db *gorm.DB, syllabusID int) ([]models.SyllabusMaterial, error) {
+	var materials []models.SyllabusMaterial
+	if err := db.Where("syllabus_id = ?", syllabusID).Order("\"order\"").Find(&materials).Error; err != nil {
+		return nil, fmt.Errorf(constants.ErrFailedToRetrieveSyllabusMaterial)
+	}
+	return materials, nil
+}

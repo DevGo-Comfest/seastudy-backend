@@ -16,6 +16,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// CreateCourse creates a new course
 func CreateCourse(c *gin.Context, db *gorm.DB) {
 	var input models.CourseInput
 
@@ -48,6 +49,7 @@ func CreateCourse(c *gin.Context, db *gorm.DB) {
 	c.JSON(http.StatusOK, gin.H{"message": "Course created successfully", "course": course})
 }
 
+// GetAllCourses retrieves all courses
 func GetAllCourses(c *gin.Context, db *gorm.DB) {
 	courses, err := service.GetAllCourses(db)
 	if err != nil {
@@ -58,6 +60,7 @@ func GetAllCourses(c *gin.Context, db *gorm.DB) {
 	c.JSON(http.StatusOK, gin.H{"courses": courses})
 }
 
+// GetPopularCourses retrieves popular courses
 func GetPopularCourses(c *gin.Context, db *gorm.DB) {
 	courses, err := service.GetPopularCourses(db)
 	if err != nil {
@@ -68,6 +71,7 @@ func GetPopularCourses(c *gin.Context, db *gorm.DB) {
 	c.JSON(http.StatusOK, gin.H{"courses": courses})
 }
 
+// GetCourse retrieves a course
 func GetCourse(c *gin.Context, db *gorm.DB) {
 	courseIDParam := c.Param("course_id")
 	courseID, err := strconv.Atoi(courseIDParam)
@@ -99,6 +103,7 @@ func GetCourse(c *gin.Context, db *gorm.DB) {
 	c.JSON(http.StatusOK, gin.H{"course": course})
 }
 
+// UpdateCourse updates a course
 func UpdateCourse(c *gin.Context, db *gorm.DB) {
 	courseIDParam := c.Param("course_id")
 	courseID, err := strconv.Atoi(courseIDParam)
@@ -129,6 +134,7 @@ func UpdateCourse(c *gin.Context, db *gorm.DB) {
 	c.JSON(http.StatusOK, gin.H{"message": "Course updated successfully", "course": course})
 }
 
+// DeleteCourse deletes a course
 func DeleteCourse(c *gin.Context, db *gorm.DB) {
 	courseIDParam := c.Param("course_id")
 	courseID, err := strconv.Atoi(courseIDParam)
@@ -150,6 +156,7 @@ func DeleteCourse(c *gin.Context, db *gorm.DB) {
 	c.JSON(http.StatusOK, gin.H{"message": "Course deleted successfully"})
 }
 
+// UploadCourseImage uploads an image for a course
 func UploadCourseImage(c *gin.Context, db *gorm.DB) {
 	file, err := c.FormFile("image")
 	if err != nil {
@@ -190,6 +197,7 @@ func UploadCourseImage(c *gin.Context, db *gorm.DB) {
 	c.JSON(http.StatusOK, gin.H{"message": "Image uploaded successfully", "image_url": imageURL})
 }
 
+// AddCourseInstructors adds instructors to a course
 func AddCourseInstructors(c *gin.Context, db *gorm.DB) {
 	courseIDParam := c.Param("course_id")
 	courseID, err := strconv.Atoi(courseIDParam)
@@ -236,6 +244,7 @@ func AddCourseInstructors(c *gin.Context, db *gorm.DB) {
 	c.JSON(http.StatusOK, gin.H{"message": "Instructors added to course successfully"})
 }
 
+// SearchCourses searches for courses based on the query and filters
 func SearchCourses(c *gin.Context, db *gorm.DB) {
 	query := c.Query("q")                     // Search query
 	category := c.Query("category")           // Course category filter
@@ -262,6 +271,7 @@ func SearchCourses(c *gin.Context, db *gorm.DB) {
 	c.JSON(http.StatusOK, gin.H{"courses": courses})
 }
 
+// GetMyCourse retrieves the courses created by the user
 func GetMyCourse(c *gin.Context, db *gorm.DB) {
 	userID := c.GetString("userID")
 	userUUID, err := uuid.Parse(userID)
@@ -283,6 +293,7 @@ func GetMyCourse(c *gin.Context, db *gorm.DB) {
 	c.JSON(http.StatusOK, gin.H{"course": course})
 }
 
+// ActivateCourse activates a course
 func ActivateCourse(c *gin.Context, db *gorm.DB) {
 	courseID, err := strconv.Atoi(c.Param("course_id"))
 	if err != nil {
@@ -303,4 +314,37 @@ func ActivateCourse(c *gin.Context, db *gorm.DB) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Course activated successfully", "course": course})
+}
+
+// GetCourseInstructors retrieves the instructors for a course
+func GetCourseInstructors(c *gin.Context, db *gorm.DB) {
+	courseIDParam := c.Param("course_id")
+	courseID, err := strconv.Atoi(courseIDParam)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidCourseID})
+		return
+	}
+
+	instructors, err := service.GetCourseInstructors(db, courseID)
+	if err != nil {
+		if err.Error() == "no instructors found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": constants.ErrNoInstructorsFound})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToRetrieveInstructors})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"instructors": instructors})
+}
+
+// Fetch all users with author role
+func GetInstructors(c *gin.Context, db *gorm.DB) {
+	users, err := service.GetInstructors(db)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToRetrieveAuthors})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"instructors": users})
 }
