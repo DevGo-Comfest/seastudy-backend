@@ -191,3 +191,30 @@ func DeleteAssignment(c *gin.Context, db *gorm.DB) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Assignment deleted successfully"})
 }
+
+func GetUserAssignment(c *gin.Context, db *gorm.DB) {
+    assignmentID, err := strconv.Atoi(c.Param("assignmentId"))
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidAssignmentID})
+        return
+    }
+
+    userID, exists := c.Get("userID")
+    if !exists {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
+        return
+    }
+
+    userAssignment, err := service.GetUserAssignment(db, assignmentID, userID.(string))
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToRetrieveUserAssignment})
+        return
+    }
+
+    if userAssignment == nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": constants.ErrUserAssignmentNotFound})
+        return
+    }
+
+    c.JSON(http.StatusOK, userAssignment)
+}

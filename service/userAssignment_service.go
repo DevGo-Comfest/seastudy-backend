@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"sea-study/api/models"
 	"sea-study/constants"
@@ -69,4 +70,19 @@ func DeleteAssignment(db *gorm.DB, assignmentID int) error {
 		return fmt.Errorf(constants.ErrFailedToDeleteAssignment)
 	}
 	return nil
+}
+
+func GetUserAssignment(db *gorm.DB, assignmentID int, userID string) (*models.UserAssignment, error) {
+    var userAssignment models.UserAssignment
+    
+    result := db.Where("assignment_id = ? AND user_id = ?", assignmentID, userID).First(&userAssignment)
+    
+    if result.Error != nil {
+        if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+            return nil, nil 
+        }
+        return nil, result.Error 
+    }
+    
+    return &userAssignment, nil
 }

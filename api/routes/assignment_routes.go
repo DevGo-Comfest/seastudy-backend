@@ -21,6 +21,9 @@ func RegisterAssignmentRoutes(router *gin.Engine, db *gorm.DB) {
 			authenticated.GET("/assignments/:id", func(c *gin.Context) {
 				controllers.GetAssignment(c, db)
 			})
+			authenticated.GET("/user-assignment/:assignmentId", func(c *gin.Context) {
+				controllers.GetUserAssignment(c, db)
+			})
 		}
 
 		authorRoutes := api.Group("/")

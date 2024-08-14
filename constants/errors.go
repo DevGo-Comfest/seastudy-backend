@@ -2,17 +2,17 @@ package constants
 
 // User Errors
 const (
-	ErrUnauthorized  = "unauthorized"
-	ErrInvalidUserID = "invalid user ID format"
-	ErrUserNotFound  = "user not found"
-	ErrAuthorNotFound = "author not found"
-	ErrFailedToHash = "failed to hash password"
-	ErrFailedToCreateUser = "failed to create user"
-	ErrInvalidCredentials = "invalid email or password"
-	ErrFailedToRetrieveUser = "failed to retrieve user"
-	ErrFailedToRetrieveAuthors = "failed to retrieve authors"
-	ErrFailedToGenerateToken = "failed to generate token"
-	ErrUserNotAuthenticated = "user not authenticated"
+	ErrUnauthorized                = "unauthorized"
+	ErrInvalidUserID               = "invalid user ID format"
+	ErrUserNotFound                = "user not found"
+	ErrAuthorNotFound              = "author not found"
+	ErrFailedToHash                = "failed to hash password"
+	ErrFailedToCreateUser          = "failed to create user"
+	ErrInvalidCredentials          = "invalid email or password"
+	ErrFailedToRetrieveUser        = "failed to retrieve user"
+	ErrFailedToRetrieveAuthors     = "failed to retrieve authors"
+	ErrFailedToGenerateToken       = "failed to generate token"
+	ErrUserNotAuthenticated        = "user not authenticated"
 	ErrFailedToRetrieveUserProfile = "failed to retrieve user profile"
 )
 
@@ -20,7 +20,7 @@ const (
 const (
 	ErrFailedToUploadImage = "failed to upload image"
 	ErrFailedToSaveImage   = "failed to save image"
-	ErrFailedToSaveFile   = "failed to save file"
+	ErrFailedToSaveFile    = "failed to save file"
 )
 
 // Generic Errors
@@ -30,19 +30,18 @@ const (
 
 // Course Errors
 const (
-	ErrInvalidCourseID         = "invalid course ID"
-	ErrCourseNotFound          = "course not found"
-	ErrNoInstructorsFound      = "no instructors found for this course"
-	ErrFailedToCreateCourse    = "failed to create course"
-	ErrFailedToUpdateCourse    = "failed to update course"
-	ErrFailedToDeleteCourse    = "failed to delete course"
-	ErrFailedToRetrieveCourse  = "failed to retrieve course"
-	ErrInvalidRating           = "invalid rating"
-	ErrFailedToRetrieveCourses = "failed to retrieve courses"
+	ErrInvalidCourseID             = "invalid course ID"
+	ErrCourseNotFound              = "course not found"
+	ErrNoInstructorsFound          = "no instructors found for this course"
+	ErrFailedToCreateCourse        = "failed to create course"
+	ErrFailedToUpdateCourse        = "failed to update course"
+	ErrFailedToDeleteCourse        = "failed to delete course"
+	ErrFailedToRetrieveCourse      = "failed to retrieve course"
+	ErrInvalidRating               = "invalid rating"
+	ErrFailedToRetrieveCourses     = "failed to retrieve courses"
 	ErrFailedToRetrieveInstructors = "failed to retrieve instructors"
-	ErrFailedToOpenFile = "failed to open file"
-	ErrFailedToReadFile = "failed to read file"
-
+	ErrFailedToOpenFile            = "failed to open file"
+	ErrFailedToReadFile            = "failed to read file"
 )
 
 // Syllabus Errors
@@ -102,21 +101,23 @@ const (
 
 // Topup Errors
 const (
-	ErrFailedToCreateTopup       = "failed to create top-up"
-	ErrFailedToUpdateUserBalance = "failed to update user balance"
+	ErrFailedToCreateTopup          = "failed to create top-up"
+	ErrFailedToUpdateUserBalance    = "failed to update user balance"
 	ErrFailedToRetrieveTopupHistory = "fialed to retriver top-up history"
 )
 
 // Assignment Errors
 const (
-	ErrInvalidAssignmentID          = "invalid assignment ID"
-	ErrAssignmentNotFound           = "assignment not found"
-	ErrUnauthorizedAssignmentAction = "unauthorized to perform this action on the assignment"
-	ErrFailedToCreateAssignment     = "failed to create assignment"
-	ErrFailedToUpdateAssignment     = "failed to update assignment"
-	ErrFailedToDeleteAssignment     = "failed to delete assignment"
-	ErrFailedToRetrieveAssignment   = "failed to retrieve assignment"
-	ErrFailedToCreateUserAssignment = "failed to create user assignment"
+	ErrInvalidAssignmentID            = "invalid assignment ID"
+	ErrAssignmentNotFound             = "assignment not found"
+	ErrUserAssignmentNotFound         = "user assignment not found"
+	ErrUnauthorizedAssignmentAction   = "unauthorized to perform this action on the assignment"
+	ErrFailedToCreateAssignment       = "failed to create assignment"
+	ErrFailedToUpdateAssignment       = "failed to update assignment"
+	ErrFailedToDeleteAssignment       = "failed to delete assignment"
+	ErrFailedToRetrieveAssignment     = "failed to retrieve assignment"
+	ErrFailedToCreateUserAssignment   = "failed to create user assignment"
+	ErrFailedToRetrieveUserAssignment = "failed to retrieve user assignments"
 )
 
 // Submission Errors
