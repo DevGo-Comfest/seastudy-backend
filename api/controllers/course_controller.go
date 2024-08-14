@@ -1,13 +1,16 @@
 package controllers
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"net/http"
-	"os"
+	"path/filepath"
 	"sea-study/api/models"
 	"sea-study/constants"
 	"sea-study/service"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -156,27 +159,56 @@ func DeleteCourse(c *gin.Context, db *gorm.DB) {
 
 // UploadCourseImage uploads an image for a course
 func UploadCourseImage(c *gin.Context, db *gorm.DB) {
-	file, err := c.FormFile("image")
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrFailedToUploadImage})
-		return
-	}
+    file, err := c.FormFile("image")
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrFailedToUploadImage})
+        return
+    }
 
-	extension := file.Filename[len(file.Filename)-4:]
+    maxSize := int64(5 * 1024 * 1024) // 5MB
+    if file.Size > maxSize {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "File size exceeds the 2MB limit"})
+        return
+    }
 
-	imageID := uuid.New().String()
+    extension := strings.ToLower(filepath.Ext(file.Filename))
+    if extension != ".jpg" && extension != ".jpeg" && extension != ".png" {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Only jpg, jpeg, and png files are allowed"})
+        return
+    }
 
-	filePath := fmt.Sprintf("uploads/%s%s", imageID, extension)
-	if err := c.SaveUploadedFile(file, filePath); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToSaveImage})
-		return
-	}
+    fileContent, err := file.Open()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToOpenFile})
+        return
+    }
+    defer fileContent.Close()
 
-	hostURL := os.Getenv("HOST_URL")
-	imageURL := fmt.Sprintf("%s/%s", hostURL, filePath)
+    buf := new(bytes.Buffer)
+    _, err = io.Copy(buf, fileContent)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToReadFile})
+        return
+    }
 
-	c.JSON(http.StatusOK, gin.H{"message": "Image uploaded successfully", "image_url": imageURL})
+    imageID := uuid.New().String()
+    filePath := fmt.Sprintf("%s%s", imageID, extension)
+
+    r2Service, err := service.NewR2Service()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToSaveFile})
+        return
+    }
+
+    imageURL, err := r2Service.UploadFile(filePath, buf.Bytes())
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToSaveFile})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "Image uploaded successfully", "image_url": imageURL})
 }
+
 
 // AddCourseInstructors adds instructors to a course
 func AddCourseInstructors(c *gin.Context, db *gorm.DB) {
