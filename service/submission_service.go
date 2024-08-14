@@ -15,15 +15,25 @@ import (
 
 func CreateSubmission(db *gorm.DB, submission *models.Submission) (*models.Submission, error) {
     var assignmentTitle string
-
     err := db.Transaction(func(tx *gorm.DB) error {
         // Get the assignment based on assignment id in submission
         var assignment models.Assignment
         if err := tx.Where("assignment_id = ?", submission.AssignmentID).First(&assignment).Error; err != nil {
             return err
         }
-
         assignmentTitle = assignment.Title
+
+        // Get the user assignment
+        var userAssignment models.UserAssignment
+        if err := tx.Where("assignment_id = ? AND user_id = ?", submission.AssignmentID, submission.UserID).First(&userAssignment).Error; err != nil {
+            if errors.Is(err, gorm.ErrRecordNotFound) {
+                return fmt.Errorf("user assignment not found for assignment ID %d and user ID %s", submission.AssignmentID, submission.UserID)
+            }
+            return err
+        }
+
+        // Check if the submission is late
+        submission.IsLate = time.Now().After(userAssignment.DueDate)
 
         // Get the syllabus based on the assignment's syllabus_id
         var syllabus models.Syllabus
@@ -40,7 +50,6 @@ func CreateSubmission(db *gorm.DB, submission *models.Submission) (*models.Submi
         var progress models.UserProgress
         result := tx.Where("user_id = ? AND course_id = ? AND syllabus_id = ?",
             submission.UserID, syllabus.CourseID, syllabus.SyllabusID).First(&progress)
-
         if result.Error != nil {
             if errors.Is(result.Error, gorm.ErrRecordNotFound) {
                 // Create new progress if not found
@@ -66,10 +75,8 @@ func CreateSubmission(db *gorm.DB, submission *models.Submission) (*models.Submi
                 return err
             }
         }
-
         return nil
     })
-
     if err != nil {
         return nil, err
     }
