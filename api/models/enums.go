@@ -6,6 +6,7 @@ type RoleEnum string
 const (
     UserRole   RoleEnum = "user"
     AuthorRole RoleEnum = "author"
+    InstructorRole RoleEnum = "instructor"
 )
 
 // Topup status enums
@@ -37,7 +38,6 @@ const (
 type ProgressStatusEnum string
 
 const (
-    NotStarted   ProgressStatusEnum = "not_started"
     InProgress   ProgressStatusEnum = "in_progress"
     Completed    ProgressStatusEnum = "completed"
 )
@@ -46,7 +46,24 @@ const (
 type SubmissionStatusEnum string
 
 const (
-    NotSubmitted   SubmissionStatusEnum = "not_submitted"
     Submitted      SubmissionStatusEnum = "submitted"
     Graded         SubmissionStatusEnum = "graded"
+)
+
+
+// Course category enums
+type CategoryEnum string
+
+const (
+    Android          CategoryEnum = "Android"
+    Web              CategoryEnum = "Web"
+    Desktop          CategoryEnum = "Desktop"
+    Multiplatform    CategoryEnum = "Multiplatform"
+    Game             CategoryEnum = "Game"
+    IOS              CategoryEnum = "IOS"
+    MachineLearning  CategoryEnum = "Machine Learning"
+    DataScientist    CategoryEnum = "Data Scientist"
+    React            CategoryEnum = "React"
+    DevOps           CategoryEnum = "DevOps"
+    Cloud            CategoryEnum = "Cloud"
 )
