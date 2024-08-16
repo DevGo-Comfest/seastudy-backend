@@ -3,7 +3,7 @@ name: Deploy to VPS
 on:
   push:
     branches:
-      - dev  # Replace 'main' with your branch name
+      - main
 
 jobs:
   deploy:
@@ -13,14 +13,18 @@ jobs:
       - name: SSH into VPS and Pull Changes
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.HOST }}
+          host: ${{ secrets.MAIN_HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
           passphrase: ${{ secrets.PASS }}
           script: |
             cd ~/seastudy-backend  # Adjust this path as needed
-            git pull origin dev
-            go build -o seastudy-app
-            systemctl stop seastudy.service
-            systemctl start seastudy.service
+            git pull origin main
+            go build -o seastudy
+
+            # Kill any existing screen session named 'seastudy'
+            screen -S seastudy -X quit || true
+
+            # Start a new screen session and run the app
+            screen -dmS seastudy ./seastudy
